@@ -30,7 +30,7 @@ public class DrawPane extends JPanel {
 	@Override
 	protected void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);
-
+		
 		// get the particle shape and color, then draw it
 		Shape shape = particle.getShape();
 		Graphics2D g2d = (Graphics2D) graphics;
