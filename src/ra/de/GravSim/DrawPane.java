@@ -12,11 +12,12 @@ import javax.swing.JPanel;
 public class DrawPane extends JPanel {
 
 	private Universe universe;
+	private Particle particle;
 
-	public DrawPane(Universe uni) {
-		this.universe = uni;
-		Timer t = new Timer(false);
-		t.scheduleAtFixedRate(new TimerTask() {
+	public DrawPane(Universe universe) {
+		this.universe = universe;
+		Timer timer = new Timer(false);
+		timer.scheduleAtFixedRate(new TimerTask() {
 
 			@Override
 			public void run() {
@@ -27,16 +28,13 @@ public class DrawPane extends JPanel {
 	}
 
 	@Override
-	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
+	protected void paintComponent(Graphics graphics) {
+		super.paintComponent(graphics);
 
-		// zeichne bild mit partikeln
-		Particle p = ;
-
-		Shape shape = p.getShape();
-		Graphics2D g2d = (Graphics2D) g;
+		// get the particle shape and color, then draw it
+		Shape shape = particle.getShape();
+		Graphics2D g2d = (Graphics2D) graphics;
 		g2d.setColor(Color.red);
-
 		g2d.fill(shape);
 
 	}

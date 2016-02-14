@@ -6,16 +6,22 @@ import java.awt.geom.Point2D;
 
 public class Particle {
 
+	/** the mass of a defined particle */
 	private int mass;
+	
+	/** the radius of a defined particle */
 	private double radius;
 
 	/** indicate whether a particle collided with another one */
 	private boolean collisionFlag;
+	
+	/** the location of a particle in the jframe */
+	private Point2D.Float location;
+	
+	/** the vector of a particle in the jframe */
+	private Point2D.Float vector;
 
-	private Point2D.Double location;
-	private Point2D.Double vector;
-
-	public Particle(int mass, int x, int y, int vx, int vy) {
+	public Particle(int mass, float x, float y) {
 
 		this.mass = mass;
 		this.collisionFlag = false;
