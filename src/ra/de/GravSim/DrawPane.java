@@ -12,7 +12,14 @@ import javax.swing.JPanel;
 public class DrawPane extends JPanel {
 
 	private Universe universe;
-	private Particle particle;
+
+	// TODO: Get the particle from the particle list
+
+	// Example particles
+	private Particle particleOne = new Particle(10, 50, 50);
+	private Particle particleTwo = new Particle(1000000, 500, 50);
+	private Particle particleThree = new Particle(10000, 50, 500);
+	private Particle particleFour = new Particle(100, 500, 500);
 
 	public DrawPane(Universe universe) {
 		this.universe = universe;
@@ -28,14 +35,24 @@ public class DrawPane extends JPanel {
 	}
 
 	@Override
+	/** get the shape of a defined particle and add the color, then draw it */
 	protected void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);
-		
-		// get the particle shape and color, then draw it
-		Shape shape = particle.getShape();
+
+		Shape shapeOne = particleOne.getShape();
+		Shape shapeTwo = particleTwo.getShape();
+		Shape shapeThree = particleThree.getShape();
+		Shape shapeFour = particleFour.getShape();
+
 		Graphics2D g2d = (Graphics2D) graphics;
+
+		// TODO: change color according to mass
 		g2d.setColor(Color.red);
-		g2d.fill(shape);
+
+		g2d.fill(shapeOne);
+		g2d.fill(shapeTwo);
+		g2d.fill(shapeThree);
+		g2d.fill(shapeFour);
 
 	}
 
