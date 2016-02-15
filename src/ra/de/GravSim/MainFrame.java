@@ -4,18 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.GridLayout;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-public class MainFrame extends JFrame implements MouseListener, MouseMotionListener {
+public class MainFrame extends JFrame {
 
 	/**
-	 * Launch the application.
+	 * --- Launch ---
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -30,13 +27,13 @@ public class MainFrame extends JFrame implements MouseListener, MouseMotionListe
 	}
 
 	/**
-	 * Create the frame.
+	 * --- Framehandling ---
 	 */
 	public MainFrame() {
 
 		setTitle("Gravity Simulator");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 600);
+		setBounds(500, 100, 1000, 1000);
 
 		JPanel main = new JPanel(new BorderLayout());
 
@@ -51,48 +48,4 @@ public class MainFrame extends JFrame implements MouseListener, MouseMotionListe
 		getContentPane().add(main);
 	}
 
-	/**
-	 * --- MOUSEHANDLING ---
-	 */
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
 }
