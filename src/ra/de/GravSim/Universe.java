@@ -2,17 +2,17 @@ package ra.de.GravSim;
 
 import java.util.LinkedList;
 
+/**
+ * This class contains the list of all created particles and the principlies
+ * applying to them, such as gravitational forces.
+ */
 public class Universe {
-
-	/** the list array which stores every particle in the universe */
-	LinkedList<Particle> particleList = new LinkedList<Particle>();
 
 	/** a defined particle */
 	Particle particle;
 
-	public void saveParticle(Particle particle) {
-		particleList.add(particle);
-	}
+	/** the list array which stores every particle in the universe */
+	LinkedList<Particle> particleList = new LinkedList<Particle>();
 
 	// TODO: Math for Gravity and Distance
 
