@@ -3,6 +3,7 @@ package ra.de.GravSim;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -10,11 +11,8 @@ import javax.swing.JPanel;
 
 public class DrawPane extends JPanel {
 
-	private Universe universe;
-
-	/* Example particles */
-	// private Particle particleOne = new Particle(10, 50, 50);
-	// private Particle particleTwo = new Particle(1000000, 500, 50, 1);
+	Universe universe;
+	MainFrame mainFrame;
 
 	public DrawPane(Universe universe) {
 		this.universe = universe;
@@ -34,20 +32,10 @@ public class DrawPane extends JPanel {
 	protected void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);
 
-		// Shape shapeOne = (Shape) universe.particleList.get(0).getShape();
-		// Shape shapeTwo = particleTwo.getShape();
-
+		Shape shapeOne = mainFrame.particleList.get(mainFrame.particleIndex).getShape();
 		Graphics2D g2d = (Graphics2D) graphics;
-
 		// TODO: change color according to mass
 		g2d.setColor(Color.red);
-
-		// g2d.fill(shapeOne);
-		// g2d.fill(shapeTwo);
+		g2d.fill(shapeOne);
 	}
-
-	/*
-	 * --- Mousehandling ---
-	 */
-
 }

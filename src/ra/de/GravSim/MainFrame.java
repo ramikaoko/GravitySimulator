@@ -6,12 +6,26 @@ import java.awt.EventQueue;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.LinkedList;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 public class MainFrame extends JFrame {
+
+	/** an instance of universe */
+	Universe universe = new Universe();
+
+	/** a defined particle */
+	// Particle(mass, x, y, id)
+	Particle particle;
+
+	/** the list array which stores every particle in the universe */
+	protected LinkedList<Particle> particleList = new LinkedList<Particle>();
+
+	/** particleCounter takes count of the created particles and */
+	protected int particleIndex = 0;
 
 	/*
 	 * --- Framehandling ---
@@ -33,7 +47,24 @@ public class MainFrame extends JFrame {
 		addMouseListener(new MouseAdapter() {
 
 			public void mousePressed(MouseEvent me) {
-				System.out.println("clicked!");
+				System.out.println("clicked: " + particleIndex + " times!");
+
+				// TODO: set mass value to the choosen value
+				// TODO: set x & y at the mouseposition
+				particle = new Particle(1000, 500, 500, particleIndex);
+				particleList.add(particle);
+				particleIndex++;
+
+				/*
+				 * - click -> create particle -> save it in the list -> draw it
+				 * at the clickposition
+				 */
+
+				/*
+				 * - drag -> create particle -> get velocity by compute the
+				 * distance -> save in the list -> draw at the first click
+				 * position
+				 */
 			}
 		});
 
