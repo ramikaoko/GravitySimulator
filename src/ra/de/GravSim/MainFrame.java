@@ -2,18 +2,13 @@ package ra.de.GravSim;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
@@ -22,14 +17,18 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 /* 
  * TODO:
  * - Masse über die Knöpfe veränderbar machen
- * - Bewegungsgeschwindigkeit über die Knöpfe veränderbar machen
- * - Partikelfarbe entsprechend der Masse ändern
+ * - Dichte implementieren und veränderbar machen
+ * - Partikelfarbe entsprechend der Masse und Dichte ändern
  * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
- * ? (Partikel von den Seiten abprallen lassen)
+ * - Partikel von den Seiten abprallen lassen
  * - Gravitation implementieren
+ * - Spaltung der Partikel untereinander implementieren
  * - Abstandsberechnung implementieren
+ * - ControlPanel Steuerung in eigene Klasse auskoppeln
+ * - JSpinner in Controler im ^10er Schritten steigen lassen
  */
 
+@SuppressWarnings("serial")
 public class MainFrame extends JFrame {
 
 	/** an instance of universe */
@@ -41,7 +40,6 @@ public class MainFrame extends JFrame {
 	/*
 	 * --- Mainframe settings and Mousehandling ---
 	 */
-
 	public MainFrame() {
 
 		/* set the basic parameters for the JFrame */
@@ -53,22 +51,24 @@ public class MainFrame extends JFrame {
 		JPanel main = new JPanel(new BorderLayout());
 
 		/* create the controlpanel */
-		JPanel control = new JPanel();
-		/* and initialize it */
-		initializeControlPanel(control);
+		JPanel control = new Controler(universe);
 
 		/* create the contentpanel */
-		DrawPane pane = new DrawPane(universe);
-		pane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		/* add the universepanel */
-		main.add(pane, BorderLayout.CENTER);
-		/* add the controlpanel */
+		DrawPane content = new DrawPane(universe);
+		content.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		/* add the contentpanel to the mainpanel */
+		main.add(content, BorderLayout.CENTER);
+
+		/* add the controlpanel to the mainpanel */
 		main.add(control, BorderLayout.WEST);
 		getContentPane().setLayout(new GridLayout(1, 1));
+
+		/* add main with control- and contentpanel to the contentPane */
 		getContentPane().add(main);
 
 		/* add the mouselistener for control purposes */
-		pane.addMouseListener(new MouseAdapter() {
+		content.addMouseListener(new MouseAdapter() {
 
 			/*
 			 * the starting point of the mouse coursor, vector calculation
@@ -84,69 +84,11 @@ public class MainFrame extends JFrame {
 			public void mouseReleased(MouseEvent me) {
 				super.mouseReleased(me);
 				Point end = me.getPoint();
-				Particle p = universe.createParticle(500000, (int) start.getX(), (int) start.getY());
+				Particle p = universe.createParticle(universe.getParticleMass(), (int) start.getX(),
+						(int) start.getY());
 				p.calculateVector(start, end);
 			}
 		});
-
-	}
-
-	/* controlpanel GUI options will be set here */
-	public void initializeControlPanel(JPanel panel) {
-		JButton button;
-		JLabel label;
-		JTextField textField;
-		panel.setLayout(new GridBagLayout());
-		GridBagConstraints gbc = new GridBagConstraints();
-
-		/* TODO: return the chosen mass and use it for particle creation */
-
-		label = new JLabel("Masse: ", (int) CENTER_ALIGNMENT);
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		panel.add(label, gbc);
-
-		textField = new JTextField(" ");
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		panel.add(textField, gbc);
-
-		label = new JLabel(" ");
-		gbc.gridy++;
-		panel.add(label, gbc);
-
-		button = new JButton("winzig");
-		gbc.gridy++;
-		panel.add(button, gbc);
-
-		button = new JButton("klein");
-		gbc.gridy++;
-		panel.add(button, gbc);
-
-		button = new JButton("mittel");
-		gbc.gridy++;
-		panel.add(button, gbc);
-
-		button = new JButton("groß");
-		gbc.gridy++;
-		panel.add(button, gbc);
-
-		button = new JButton("gewaltig");
-		gbc.gridy++;
-		panel.add(button, gbc);
-
-		button = new JButton("gigantisch");
-		gbc.gridy++;
-		panel.add(button, gbc);
-
-		label = new JLabel(" ");
-		gbc.gridy++;
-		panel.add(label, gbc);
-
-		button = new JButton("Protoscheibe");
-		gbc.gridy++;
-		panel.add(button, gbc);
 	}
 
 	/*

@@ -9,10 +9,10 @@ import java.awt.geom.Point2D;
 public class Particle {
 
 	/** the mass of a defined particle */
-	private Double mass;
+	private double mass;
 
 	/** the radius of a defined particle */
-	private Double radius;
+	private double radius;
 
 	/** the location of a particle in the jframe */
 	private Point2D location;
@@ -23,20 +23,12 @@ public class Particle {
 	/*
 	 * --- getter and setter ---
 	 */
-	public Double getRadius() {
+	public double getRadius() {
 		return radius;
 	}
 
-	public void setRadius(Double radius) {
+	public void setRadius(double radius) {
 		this.radius = radius;
-	}
-
-	public Double getMass() {
-		return mass;
-	}
-
-	public void setMass(Double mass) {
-		this.mass = mass;
 	}
 
 	public Point2D getVector() {
@@ -44,18 +36,18 @@ public class Particle {
 	}
 
 	/*
-	 * --- calculations ---
+	 * --- Particle calculations ---
 	 */
 	public void calculateVector(Point start, Point end) {
-		Double dx = (Double) (end.getX() - start.getX());
-		Double dy = (Double) (end.getY() - start.getY());
+		double dx = (double) (end.getX() - start.getX());
+		double dy = (double) (end.getY() - start.getY());
 		dx /= 10;
 		dy /= 10;
 		this.vector = new Point2D.Double(dx, dy);
 	}
 
-	public Double calculateRadius() {
-		return Math.log(Math.E + mass / 1000);
+	public double calculateRadius() {
+		return Math.log(Math.E + mass / 10);
 	}
 
 	public void moveParticle(double times) {
@@ -73,7 +65,7 @@ public class Particle {
 	/*
 	 * --- Constructor ---
 	 */
-	public Particle(Double mass, Double x, Double y) {
+	public Particle(double mass, double x, double y) {
 
 		this.mass = mass;
 		this.radius = calculateRadius();

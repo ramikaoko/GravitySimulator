@@ -28,6 +28,7 @@ public class DrawPane extends JPanel implements Observer {
 
 	boolean drawFront = true;
 
+	/* TODO: commentary */
 	public DrawPane(Universe universe) {
 		int period = 16;
 
@@ -68,13 +69,12 @@ public class DrawPane extends JPanel implements Observer {
 			else
 				buffer = back;
 		}
-
+		/* TODO: commentary */
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 		g2d.drawRenderedImage(buffer, AffineTransform.getTranslateInstance(0, 0));
-
 	}
 
-	/** TODO */
+	/** TODO commentary */
 	private synchronized void createBuffers() {
 		front = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 		back = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
@@ -89,7 +89,7 @@ public class DrawPane extends JPanel implements Observer {
 		updateBuffer();
 	}
 
-	/** TODO */
+	/** TODO commentary */
 	private synchronized void updateBuffer() {
 		Graphics2D g2d;
 		Rectangle bounds;
@@ -110,13 +110,13 @@ public class DrawPane extends JPanel implements Observer {
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 
-		g2d.setColor(Color.DARK_GRAY.darker());
+		g2d.setColor(Color.DARK_GRAY);
 		g2d.fill(bounds);
 		/* get the to-be-drawn particle out of the particleList */
 		List<Particle> particleList = universe.getParticleList();
 		for (Particle particle : particleList) {
 			Shape shape = particle.getShape();
-			// TODO: change color according to mass
+			// TODO: change color according to mass and density
 			g2d.setColor(Color.red);
 			g2d.fill(shape);
 		}

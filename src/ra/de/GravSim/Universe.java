@@ -25,6 +25,16 @@ public class Universe extends Observable {
 	/** the list array which stores every particle in the universe */
 	private final LinkedList<Particle> particleList = new LinkedList<Particle>();
 
+	private double particleMass = 10;
+
+	public double getParticleMass() {
+		return particleMass;
+	}
+
+	public void setParticleMass(double particleMass) {
+		this.particleMass = particleMass;
+	}
+
 	/*
 	 * particleList is set to read-only so all classes except universe can't
 	 * change its content. Attempts to modify the returned list, whether direct
@@ -36,9 +46,8 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * --- TimerTask ---
+	 * --- Movement calculation ---
 	 */
-
 	public Universe() {
 		Timer timer = new Timer(false);
 		int period = 15;
@@ -56,7 +65,7 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * --- calculations ---
+	 * --- Gravity calculation ---
 	 */
 
 	// TODO: Math for Gravity and Distance
@@ -66,7 +75,7 @@ public class Universe extends Observable {
 	 */
 	public Particle createParticle(double mass, double x, double y) {
 		particleCounter.getAndIncrement();
-		Particle particle = new Particle(mass, x, y);
+		Particle particle = new Particle(getParticleMass(), x, y);
 		particleList.add(particle);
 		return particle;
 	}
