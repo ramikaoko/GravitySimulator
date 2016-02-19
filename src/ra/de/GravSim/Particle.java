@@ -5,51 +5,79 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 
+/** TODO: particle description */
 public class Particle {
 
 	/** the mass of a defined particle */
-	private float mass;
+	private Double mass;
 
 	/** the radius of a defined particle */
-	private float radius;
+	private Double radius;
 
 	/** the location of a particle in the jframe */
-	private Point2D.Float location;
+	private Point2D location;
 
 	/** the vector of a particle in the jframe */
-	private Point2D.Float vector = new Point2D.Float(0, 0);
+	private Point2D vector = new Point2D.Double(0, 0);
 
-	/** a unique, human readable id which starts with 0 */
-	private int id;
+	/*
+	 * --- getter and setter ---
+	 */
+	public Double getRadius() {
+		return radius;
+	}
 
-	public Point2D.Float getVector() {
+	public void setRadius(Double radius) {
+		this.radius = radius;
+	}
+
+	public Double getMass() {
+		return mass;
+	}
+
+	public void setMass(Double mass) {
+		this.mass = mass;
+	}
+
+	public Point2D getVector() {
 		return vector;
 	}
 
-	public void setVector(Point start, Point end) {
-		double dx = end.getX() - start.getX();
-		double dy = end.getY() - start.getY();
-		dx /= 100;
-		dy /= 100;
-		vector.setLocation(dx, dy);
-		System.out.println(this.vector);
+	/*
+	 * --- calculations ---
+	 */
+	public void calculateVector(Point start, Point end) {
+		Double dx = (Double) (end.getX() - start.getX());
+		Double dy = (Double) (end.getY() - start.getY());
+		dx /= 10;
+		dy /= 10;
+		this.vector = new Point2D.Double(dx, dy);
+	}
+
+	public Double calculateRadius() {
+		return Math.log(Math.E + mass / 1000);
+	}
+
+	public void moveParticle(double times) {
+		double nx = vector.getX() / times;
+		double ny = vector.getY() / times;
+		location.setLocation(location.getX() + nx, location.getY() + ny);
 	}
 
 	public Shape getShape() {
-		Ellipse2D circle = new Ellipse2D.Float(location.x - radius, location.y - radius, 2 * radius, 2 * radius);
+		Ellipse2D circle = new Ellipse2D.Double(location.getX() - radius, location.getY() - radius, 2 * radius,
+				2 * radius);
 		return circle;
 	}
 
-	public void move() {
-		location.setLocation(location.getX() + vector.getX(), location.getY() + vector.getY());
-	}
-
-	public Particle(float mass, float x, float y, int id) {
+	/*
+	 * --- Constructor ---
+	 */
+	public Particle(Double mass, Double x, Double y) {
 
 		this.mass = mass;
-		this.radius = (float) Math.log(Math.E + mass / 1000);
-		this.location = new Point2D.Float(x, y);
-		this.id = id;
+		this.radius = calculateRadius();
+		this.location = new Point2D.Double(x, y);
 	}
 
 }
