@@ -56,7 +56,7 @@ public class DrawPane extends JPanel implements Observer {
 
 	}
 
-	/** get the shape of a defined particle and add the color, then draw it */
+	/* get the shape of a defined particle and add the color, then draw it */
 	@Override
 	protected void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);
@@ -74,13 +74,13 @@ public class DrawPane extends JPanel implements Observer {
 		g2d.drawRenderedImage(buffer, AffineTransform.getTranslateInstance(0, 0));
 	}
 
-	/** TODO commentary */
+	/* TODO commentary */
 	private synchronized void createBuffers() {
 		front = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 		back = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 	}
 
-	/**
+	/*
 	 * this observer method will listen for changes in Universe() and update
 	 * accordingly
 	 */
@@ -89,7 +89,7 @@ public class DrawPane extends JPanel implements Observer {
 		updateBuffer();
 	}
 
-	/** TODO commentary */
+	/* TODO commentary */
 	private synchronized void updateBuffer() {
 		Graphics2D g2d;
 		Rectangle bounds;
@@ -115,12 +115,55 @@ public class DrawPane extends JPanel implements Observer {
 		/* get the to-be-drawn particle out of the particleList */
 		List<Particle> particleList = universe.getParticleList();
 		for (Particle particle : particleList) {
-			Shape shape = particle.getShape();
+			Shape coreShape = particle.getCoreShape();
+			Shape hullShape = particle.getHullShape();
+
 			// TODO: change color according to mass and density
-			g2d.setColor(Color.red);
-			g2d.fill(shape);
+			g2d.setColor(determineColorMass(particle));
+			g2d.fill(hullShape);
+			g2d.setColor(determineColorDensity(particle));
+			g2d.fill(coreShape);
 		}
 
 		drawFront = !drawFront;
+	}
+
+	private Color determineColorMass(Particle particle) {
+		Color cMass = new Color(255, 255, 255);
+		double mass = particle.getMass();
+
+		if (mass > 1 && mass <= 40)
+			cMass = new Color(255, 255, 255);
+		else if (mass > 40 && mass <= 400)
+			cMass = new Color(255, 255, 100);
+		else if (mass > 400 && mass <= 4000)
+			cMass = new Color(255, 255, 0);
+		else if (mass > 4000 && mass <= 40000)
+			cMass = new Color(255, 145, 0);
+		else if (mass > 40000 && mass <= 400000)
+			cMass = new Color(255, 80, 0);
+		else if (mass > 400000 && mass <= 1000000)
+			cMass = new Color(255, 0, 0);
+
+		return cMass;
+	}
+
+	private Color determineColorDensity(Particle particle) {
+		Color cDensity = new Color(255, 255, 255);
+		double density = particle.getDensity();
+		if (density >= 0.1 && density <= 1.8)
+			cDensity = new Color(255, 255, 255);
+		else if (density > 1.8 && density <= 3.5)
+			cDensity = new Color(210, 210, 210);
+		else if (density > 3.5 && density <= 5.2)
+			cDensity = new Color(170, 170, 170);
+		else if (density > 5.2 && density <= 6.9)
+			cDensity = new Color(130, 130, 130);
+		else if (density > 6.9 && density <= 8.6)
+			cDensity = new Color(70, 70, 70);
+		else if (density > 8.6 && density <= 10)
+			cDensity = new Color(0, 0, 0);
+
+		return cDensity;
 	}
 }

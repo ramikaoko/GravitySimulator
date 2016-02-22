@@ -3,9 +3,8 @@ package ra.de.GravSim;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,33 +16,10 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class Controler extends JPanel {
+public class Controller extends JPanel {
 
-	public Controler(Universe universe) {
+	public Controller(Universe universe) {
 		initializeButtonControl(this, universe);
-	}
-
-	protected void initializeMouseControl(JPanel panel, Universe universe) {
-		panel.addMouseListener(new MouseAdapter() {
-
-			/*
-			 * the starting point of the mouse coursor, vector calculation
-			 * starts here and a created particle will be shown at this position
-			 */
-			Point start;
-
-			public void mousePressed(MouseEvent me) {
-				start = me.getPoint();
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent me) {
-				super.mouseReleased(me);
-				Point end = me.getPoint();
-				Particle p = universe.createParticle(500000, (int) start.getX(), (int) start.getY());
-				p.calculateVector(start, end);
-			}
-		});
 	}
 
 	/* controlpanel GUI options will be set here */
@@ -72,7 +48,7 @@ public class Controler extends JPanel {
 		gbc.insets = new Insets(10, 0, 0, 0);
 		panel.add(label, gbc);
 
-		spinnerMass = new JSpinner(new SpinnerNumberModel(10, 1, 1000000, 100));
+		spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1, 1000000, 100));
 		spinnerMass.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -97,13 +73,13 @@ public class Controler extends JPanel {
 		gbc.insets = new Insets(10, 0, 0, 0);
 		panel.add(label, gbc);
 
-		spinnerDensity = new JSpinner(new SpinnerNumberModel(10, 1, 1000000, 100));
+		spinnerDensity = new JSpinner(new SpinnerNumberModel(universe.getParticleDensity(), 0.1, 10, 0.1));
 		spinnerDensity.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerDensity.getValue();
 				if (value instanceof Number)
-					universe.setParticleMass(((Number) value).doubleValue());
+					universe.setParticleDensity(((Number) value).doubleValue());
 			}
 		});
 		gbc.gridx = 0;
@@ -121,6 +97,14 @@ public class Controler extends JPanel {
 		gbc.gridy++;
 		gbc.anchor = GridBagConstraints.PAGE_END;
 		gbc.insets = new Insets(10, 0, 0, 0);
+		button.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				universe.clearParticles();
+
+			}
+		});
 		panel.add(button, gbc);
 	}
 }

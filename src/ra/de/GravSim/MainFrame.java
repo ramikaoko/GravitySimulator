@@ -16,7 +16,6 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 /* 
  * TODO:
- * - Masse über die Knöpfe veränderbar machen
  * - Dichte implementieren und veränderbar machen
  * - Partikelfarbe entsprechend der Masse und Dichte ändern
  * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
@@ -25,16 +24,16 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
  * - Spaltung der Partikel untereinander implementieren
  * - Abstandsberechnung implementieren
  * - ControlPanel Steuerung in eigene Klasse auskoppeln
- * - JSpinner in Controler im ^10er Schritten steigen lassen
+ * - JSpinner in Controler in ^10er Schritten steigen lassen?
  */
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame {
 
-	/** an instance of universe */
+	/* an instance of universe */
 	Universe universe = new Universe();
 
-	/** particleCounter takes count of the created particles and */
+	/* particleCounter takes count of the created particles and */
 	protected int particleIndex = 0;
 
 	/*
@@ -51,7 +50,7 @@ public class MainFrame extends JFrame {
 		JPanel main = new JPanel(new BorderLayout());
 
 		/* create the controlpanel */
-		JPanel control = new Controler(universe);
+		JPanel control = new Controller(universe);
 
 		/* create the contentpanel */
 		DrawPane content = new DrawPane(universe);
@@ -84,8 +83,8 @@ public class MainFrame extends JFrame {
 			public void mouseReleased(MouseEvent me) {
 				super.mouseReleased(me);
 				Point end = me.getPoint();
-				Particle p = universe.createParticle(universe.getParticleMass(), (int) start.getX(),
-						(int) start.getY());
+				Particle p = universe.createParticle(universe.getParticleMass(), universe.getParticleDensity(),
+						(int) start.getX(), (int) start.getY());
 				p.calculateVector(start, end);
 			}
 		});
