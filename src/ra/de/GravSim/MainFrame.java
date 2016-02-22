@@ -16,15 +16,13 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 /* 
  * TODO:
- * - Dichte implementieren und veränderbar machen
- * - Partikelfarbe entsprechend der Masse und Dichte ändern
- * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
- * - Partikel von den Seiten abprallen lassen
- * - Gravitation implementieren
- * - Spaltung der Partikel untereinander implementieren
+ * - concurentModificationException
+ * - Partikelkollision implementieren
  * - Abstandsberechnung implementieren
- * - ControlPanel Steuerung in eigene Klasse auskoppeln
- * - JSpinner in Controler in ^10er Schritten steigen lassen?
+ * - Partikelspaltung implementieren
+ * - Gravitation implementieren
+ * - JSpinner in Controler in 1^10er Schritten steigen lassen?
+ * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
  */
 
 @SuppressWarnings("serial")
@@ -83,8 +81,7 @@ public class MainFrame extends JFrame {
 			public void mouseReleased(MouseEvent me) {
 				super.mouseReleased(me);
 				Point end = me.getPoint();
-				Particle p = universe.createParticle(universe.getParticleMass(), universe.getParticleDensity(),
-						(int) start.getX(), (int) start.getY());
+				Particle p = universe.createParticle((int) start.getX(), (int) start.getY());
 				p.calculateVector(start, end);
 			}
 		});

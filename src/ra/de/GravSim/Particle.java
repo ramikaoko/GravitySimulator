@@ -8,12 +8,13 @@ import java.awt.geom.Point2D;
 /* TODO: particle description */
 public class Particle {
 
-	/* the mass of a defined particle */
+	/* the mass of a particle */
 	private double mass;
 
+	/* the density of a particle */
 	private double density;
 
-	/* the radius of a defined particle */
+	/* the radius of a particle */
 	private double radius;
 
 	/* the location of a particle in the jframe */
@@ -25,10 +26,6 @@ public class Particle {
 	/*
 	 * --- getter and setter ---
 	 */
-	public double getRadius() {
-		return radius;
-	}
-
 	public double getMass() {
 		return mass;
 	}
@@ -37,45 +34,12 @@ public class Particle {
 		return density;
 	}
 
-	public void setRadius(double radius) {
-		this.radius = radius;
-	}
-
 	public Point2D getVector() {
 		return vector;
 	}
 
-	/*
-	 * --- Particle calculations ---
-	 */
-	public void calculateVector(Point start, Point end) {
-		double dx = (double) (end.getX() - start.getX());
-		double dy = (double) (end.getY() - start.getY());
-		dx /= 10;
-		dy /= 10;
-		this.vector = new Point2D.Double(dx, dy);
-	}
-
-	public double calculateRadius() {
-		return Math.log(Math.E + mass / density);
-	}
-
-	public void moveParticle(double times) {
-		double nx = vector.getX() / times;
-		double ny = vector.getY() / times;
-		location.setLocation(location.getX() + nx, location.getY() + ny);
-	}
-
-	public Shape getHullShape() {
-		Ellipse2D circle = new Ellipse2D.Double(location.getX() - radius, location.getY() - radius, 2 * radius,
-				2 * radius);
-		return circle;
-	}
-
-	public Shape getCoreShape() {
-		double r = radius * 0.5d;
-		Ellipse2D circle = new Ellipse2D.Double(location.getX() - r, location.getY() - r, 2 * r, 2 * r);
-		return circle;
+	public void setVector(Point2D vector) {
+		this.vector = vector;
 	}
 
 	/*
@@ -87,6 +51,45 @@ public class Particle {
 		this.density = density;
 		this.radius = calculateRadius();
 		this.location = new Point2D.Double(x, y);
+	}
+
+	/*
+	 * --- Particle calculations ---
+	 */
+
+	/* TODO */
+	public void calculateVector(Point start, Point end) {
+		double dx = (double) (end.getX() - start.getX());
+		double dy = (double) (end.getY() - start.getY());
+		dx /= 10;
+		dy /= 10;
+		this.vector = new Point2D.Double(dx, dy);
+	}
+
+	/* TODO */
+	public double calculateRadius() {
+		return Math.log(Math.E + mass / Math.pow(2, density));
+	}
+
+	/* TODO */
+	public void moveParticle(double timeSteps) {
+		double nx = vector.getX() / timeSteps;
+		double ny = vector.getY() / timeSteps;
+		location.setLocation(location.getX() + nx, location.getY() + ny);
+	}
+
+	/* TODO */
+	public Shape getHullShape() {
+		Ellipse2D circle = new Ellipse2D.Double(location.getX() - radius, location.getY() - radius, 2 * radius,
+				2 * radius);
+		return circle;
+	}
+
+	/* TODO */
+	public Shape getCoreShape() {
+		double r = radius * 0.5d;
+		Ellipse2D circle = new Ellipse2D.Double(location.getX() - r, location.getY() - r, 2 * r, 2 * r);
+		return circle;
 	}
 
 }

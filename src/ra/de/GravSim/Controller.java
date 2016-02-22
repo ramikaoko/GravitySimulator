@@ -48,7 +48,7 @@ public class Controller extends JPanel {
 		gbc.insets = new Insets(10, 0, 0, 0);
 		panel.add(label, gbc);
 
-		spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1, 1000000, 100));
+		spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1, 10000000, 100));
 		spinnerMass.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -73,7 +73,7 @@ public class Controller extends JPanel {
 		gbc.insets = new Insets(10, 0, 0, 0);
 		panel.add(label, gbc);
 
-		spinnerDensity = new JSpinner(new SpinnerNumberModel(universe.getParticleDensity(), 0.1, 10, 0.1));
+		spinnerDensity = new JSpinner(new SpinnerNumberModel(universe.getParticleDensity(), 0.1, 15, 0.1));
 		spinnerDensity.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
