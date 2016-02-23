@@ -34,8 +34,16 @@ public class Particle {
 		return density;
 	}
 
+	public double getRadius() {
+		return radius;
+	}
+
 	public Point2D getVector() {
 		return vector;
+	}
+
+	public Point2D getLocation() {
+		return location;
 	}
 
 	public void setVector(Point2D vector) {
@@ -87,8 +95,9 @@ public class Particle {
 
 	/* TODO */
 	public Shape getCoreShape() {
-		double r = radius * 0.5d;
-		Ellipse2D circle = new Ellipse2D.Double(location.getX() - r, location.getY() - r, 2 * r, 2 * r);
+		double coreRadius = radius * 0.5d;
+		Ellipse2D circle = new Ellipse2D.Double(location.getX() - coreRadius, location.getY() - coreRadius,
+				2 * coreRadius, 2 * coreRadius);
 		return circle;
 	}
 

@@ -21,8 +21,10 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
  * - Abstandsberechnung implementieren
  * - Partikelspaltung implementieren
  * - Gravitation implementieren
- * - JSpinner in Controler in 1^10er Schritten steigen lassen?
+ * - Pfeil zur Veranschaulichung des Vektors
  * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
+ * ? JSpinner in Controller in 1^10er Schritten steigen lassen
+ * ? zeitlicher Abfall der Geschwindigkeit
  */
 
 @SuppressWarnings("serial")
@@ -81,8 +83,8 @@ public class MainFrame extends JFrame {
 			public void mouseReleased(MouseEvent me) {
 				super.mouseReleased(me);
 				Point end = me.getPoint();
-				Particle p = universe.createParticle((int) start.getX(), (int) start.getY());
-				p.calculateVector(start, end);
+				Particle particle = universe.createParticle((int) start.getX(), (int) start.getY());
+				particle.calculateVector(start, end);
 			}
 		});
 	}
