@@ -1,6 +1,7 @@
 package ra.de.GravSim;
 
 import java.awt.Dimension;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collections;
@@ -109,6 +110,7 @@ public class Universe extends Observable {
 					particle.moveParticle(timeSteps);
 					bounceOffBorder(particle);
 				}
+
 				Particle particle;
 				for (int i = 0; i < particleListCopy.size() - 1; i++) {
 					particle = particleListCopy.get(i);
@@ -116,6 +118,7 @@ public class Universe extends Observable {
 						checkForCollision(particle, particleListCopy.get(j));
 					}
 				}
+
 				setChanged();
 				notifyObservers();
 			}
@@ -136,11 +139,11 @@ public class Universe extends Observable {
 	protected void bounceOffBorder(Particle particle) {
 		Rectangle2D bounds = particle.getHullShape().getBounds2D();
 		if (bounds.getMinX() <= 0 || bounds.getMaxX() >= windowSize.getWidth()) {
-			Point2D vector = particle.getVector();
-			particle.setVector(new Point2D.Double(vector.getX() * -1d, vector.getY()));
+			Vector2d vector = particle.getVector();
+			particle.setVector(new Vector2d(vector.getX() * -1d, vector.getY()));
 		} else if (bounds.getMinY() <= 0 || bounds.getMaxY() >= windowSize.getHeight()) {
-			Point2D vector = particle.getVector();
-			particle.setVector(new Point2D.Double(vector.getX(), vector.getY() * -1d));
+			Vector2d vector = particle.getVector();
+			particle.setVector(new Vector2d(vector.getX(), vector.getY() * -1d));
 		}
 	}
 
@@ -186,40 +189,68 @@ public class Universe extends Observable {
 	 * 
 	 * v1' = 2*((m1*v1 + m2*v2)/(m1+m2))-v1 with as the velocity and m as the
 	 * mass for the particles
+	 * 
+	 * each vector will be normalized to prevent strange behavior, e.g. gaining
+	 * speed after bumping into each other
 	 */
 	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
 		/* the angle at which the two particles collide */
-		double vectorAngle;
+		double vectorAngleAlpha;
 
 		/*
 		 * create a new Vector2D Object out or our Point2D-particleVectors so we
 		 * can use all those fancy methods from the vecmath library
 		 */
 		Vector2d vectorOne = new Vector2d(particleOne.getVector().getX(), particleOne.getVector().getY());
-		System.out.println(vectorOne);
+		vectorOne.normalize();
 		Vector2d vectorTwo = new Vector2d(particleTwo.getVector().getX(), particleTwo.getVector().getY());
-		System.out.println(vectorTwo);
+		vectorTwo.normalize();
+
+		/* the vector between the central points of both particles... */
+		Vector2d vectorCentral = new Vector2d(vectorOne.getX() - vectorTwo.getX(), vectorOne.getY() - vectorTwo.getY());
+		vectorCentral.normalize();
 
 		/*
-		 * the vector between the central points of both particles and the
-		 * vector which stays right-angled to vectorCentral. to get
-		 * vectorOrthogonal you have to switch the x and y coordinates and
-		 * multiply one of them by -1
+		 * ...and the vector which stays right-angled to vectorCentral. This
+		 * will actually be two vector which are pointing towards opposite
+		 * directions. To get vectorOrthogonalOne you have to switch the x and y
+		 * coordinates and multiply one of those by -1. To get number two you
+		 * have to do the same with the other point.
+		 * 
+		 * e.g. one = (vC.y , vC.x*-1) & two = (vC.y*-1 , vC.x)
 		 */
-		Vector2d vectorCentral = new Vector2d(vectorOne.getX() - vectorTwo.getX(), vectorOne.getY() - vectorTwo.getY());
-		Vector2d vectorOrthogonal = new Vector2d(vectorCentral.getY(), vectorCentral.getX() * -1);
+		Vector2d vectorOrthogonalOne = new Vector2d(vectorCentral.getY(), vectorCentral.getX() * -1);
+		vectorOrthogonalOne.normalize();
+		Vector2d vectorOrthogonalTwo = new Vector2d(vectorCentral.getY() * -1, vectorCentral.getX());
+		vectorOrthogonalTwo.normalize();
 
-		/* normalize to prevent strange reactions */
-		// vectorOne.normalize();
-		// vectorTwo.normalize();
-		// vectorCentral.normalize();
-		// vectorOrthogonal.normalize();
+		/* calculate the two angles between vectorCentral and vectorOrhogonal */
+		vectorAngleAlpha = vectorOne.angle(vectorTwo);
 
-		/* actually calculate the angle */
-		vectorAngle = vectorOne.angle(vectorTwo);
+		if (vectorAngleAlpha < 90d) {
+			rotate(vectorOrthogonalTwo, vectorAngleAlpha);
+		} else if (vectorAngleAlpha > 90d) {
+			rotate(vectorOrthogonalOne, vectorAngleAlpha);
+		} else {
+			vectorOne.setX(vectorOne.getX() * -1);
+			vectorOne.setY(vectorOne.getY() * -1);
+		}
 
-		vectorOne.set(vectorCentral.getX(), vectorCentral.getY());
-		vectorTwo.set(vectorOrthogonal.getX(), vectorOrthogonal.getY());
+		/*
+		 * set the vector for both particles to the jsut calculated central and
+		 * orthogonal vectors
+		 */
+		particleOne.setVector(vectorOrthogonalOne);
+		particleTwo.setVector(vectorOrthogonalTwo);
+
+	}
+
+	public Vector2d rotate(Vector2d v, double theta) {
+		Point2D point = new Point2D.Double(v.x, v.y);
+		AffineTransform.getRotateInstance(theta, 0, 0).transform(point, point);
+		v.x = point.getX();
+		v.y = point.getY();
+		return v;
 	}
 
 	/*

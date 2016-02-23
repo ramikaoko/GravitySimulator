@@ -20,6 +20,7 @@ import java.util.TimerTask;
 import javax.swing.JPanel;
 
 /* TODO */
+@SuppressWarnings("serial")
 public class DrawPane extends JPanel implements Observer {
 
 	/* TODO */
@@ -97,6 +98,9 @@ public class DrawPane extends JPanel implements Observer {
 	private synchronized void updateBuffer() {
 		Graphics2D g2d;
 		Rectangle bounds;
+		if (getHeight() == 0 || getWidth() == 0) {
+			return;
+		}
 		synchronized (this) {
 
 			if (front == null || back == null)

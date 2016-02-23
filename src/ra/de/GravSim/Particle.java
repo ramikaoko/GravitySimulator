@@ -5,6 +5,8 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 
+import javax.vecmath.Vector2d;
+
 /* TODO: particle description */
 public class Particle {
 
@@ -21,7 +23,9 @@ public class Particle {
 	private Point2D location;
 
 	/* the vector of a particle in the jframe */
-	private Point2D vector = new Point2D.Double(0, 0);
+	private Vector2d vector = new Vector2d();
+
+	private double velocity;
 
 	/*
 	 * --- getter and setter ---
@@ -38,16 +42,26 @@ public class Particle {
 		return radius;
 	}
 
-	public Point2D getVector() {
-		return vector;
+	public Vector2d getVector() {
+		return new Vector2d(vector);
 	}
 
 	public Point2D getLocation() {
 		return location;
 	}
 
-	public void setVector(Point2D vector) {
-		this.vector = vector;
+	public double getVelocity() {
+		return velocity;
+	}
+
+	public void setVelocity(double velocity) {
+		this.velocity = velocity;
+	}
+
+	public void setVector(Vector2d vector) {
+
+		this.vector.set(vector);
+		this.vector.normalize();
 	}
 
 	/*
@@ -71,7 +85,9 @@ public class Particle {
 		double dy = (double) (end.getY() - start.getY());
 		dx /= 10;
 		dy /= 10;
-		this.vector = new Point2D.Double(dx, dy);
+		this.vector = new Vector2d(dx, dy);
+		velocity = vector.length();
+		vector.normalize();
 	}
 
 	/* TODO */
@@ -81,8 +97,8 @@ public class Particle {
 
 	/* TODO */
 	public void moveParticle(double timeSteps) {
-		double nx = vector.getX() / timeSteps;
-		double ny = vector.getY() / timeSteps;
+		double nx = vector.getX() * velocity / timeSteps;
+		double ny = vector.getY() * velocity / timeSteps;
 		location.setLocation(location.getX() + nx, location.getY() + ny);
 	}
 

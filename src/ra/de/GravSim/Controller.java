@@ -11,11 +11,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+@SuppressWarnings("serial")
 public class Controller extends JPanel {
 
 	public Controller(Universe universe) {
@@ -26,7 +26,6 @@ public class Controller extends JPanel {
 	protected void initializeButtonControl(JPanel panel, Universe universe) {
 		JButton button;
 		JLabel label;
-		JTextField textField;
 		JSeparator separator;
 		JSpinner spinnerMass;
 		JSpinner spinnerDensity;

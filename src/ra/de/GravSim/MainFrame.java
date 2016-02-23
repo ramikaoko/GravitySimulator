@@ -16,11 +16,10 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 /* 
  * TODO:
- * - concurentModificationException
  * - Partikelkollision implementieren
- * - Abstandsberechnung implementieren
  * - Partikelspaltung implementieren
  * - Gravitation implementieren
+ * - Abstandsberechnung implementieren
  * - Pfeil zur Veranschaulichung des Vektors
  * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
  * ? JSpinner in Controller in 1^10er Schritten steigen lassen
