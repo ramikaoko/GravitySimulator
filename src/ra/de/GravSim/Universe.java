@@ -63,8 +63,6 @@ public class Universe extends Observable {
 	 */
 	private Dimension windowSize;
 
-	private boolean firstCollisionOccuredFlag;
-
 	/*
 	 * --- getter and setter ---
 	 */
@@ -130,7 +128,11 @@ public class Universe extends Observable {
 	 * TODO: Methods for gravity, distance and collision
 	 */
 
-	/* TODO */
+	/*
+	 * if a particle collides with one of the 4 site of the panel, the according
+	 * x or y value will be multiplied with -1 so the angle of incidence is
+	 * equal to the angle of emergence
+	 */
 	protected void bounceOffBorder(Particle particle) {
 		Rectangle2D bounds = particle.getHullShape().getBounds2D();
 		if (bounds.getMinX() <= 0 || bounds.getMaxX() >= windowSize.getWidth()) {
@@ -186,7 +188,7 @@ public class Universe extends Observable {
 	 * mass for the particles
 	 */
 	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
-		/* the angle at which the two vectors collide */
+		/* the angle at which the two particles collide */
 		double vectorAngle;
 
 		/*
@@ -208,16 +210,16 @@ public class Universe extends Observable {
 		Vector2d vectorOrthogonal = new Vector2d(vectorCentral.getY(), vectorCentral.getX() * -1);
 
 		/* normalize to prevent strange reactions */
-		vectorOne.normalize();
-		vectorTwo.normalize();
-		vectorCentral.normalize();
-		vectorOrthogonal.normalize();
+		// vectorOne.normalize();
+		// vectorTwo.normalize();
+		// vectorCentral.normalize();
+		// vectorOrthogonal.normalize();
 
 		/* actually calculate the angle */
 		vectorAngle = vectorOne.angle(vectorTwo);
 
 		vectorOne.set(vectorCentral.getX(), vectorCentral.getY());
-		vectorOne.set(vectorOrthogonal.getX(), vectorOrthogonal.getY());
+		vectorTwo.set(vectorOrthogonal.getX(), vectorOrthogonal.getY());
 	}
 
 	/*
