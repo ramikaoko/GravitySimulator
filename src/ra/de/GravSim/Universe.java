@@ -11,6 +11,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.vecmath.Vector2d;
+
 /*
  * This class contains the list of all created particles and the principlies
  * applying to them, such as gravitational forces, collision detection and so on. 
@@ -47,7 +49,7 @@ public class Universe extends Observable {
 	 * the mass of a defined particle is set to 100 as the default value but it
 	 * can be changed through user input in Controller()
 	 */
-	private double particleMass = 100d;
+	private double particleMass = 1000000d;
 
 	/*
 	 * analog to particleMass, the default value is 1 and can vary between 0,1
@@ -171,7 +173,7 @@ public class Universe extends Observable {
 		 * smaller than the value of c
 		 */
 		if (c <= (particleOne.getRadius() + particleTwo.getRadius())) {
-			elasticCollision(particleOne, particleTwo);
+			elasticTwoDimensionalCollision(particleOne, particleTwo);
 		}
 	}
 
@@ -183,32 +185,39 @@ public class Universe extends Observable {
 	 * v1' = 2*((m1*v1 + m2*v2)/(m1+m2))-v1 with as the velocity and m as the
 	 * mass for the particles
 	 */
-	protected void elasticCollision(Particle particleOne, Particle particleTwo) {
+	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
+		/* the angle at which the two vectors collide */
+		double vectorAngle;
 
 		/*
-		 * the variables used in the calculation are shortened so the
-		 * calculation for each velocity is not 3 lines long and difficult to
-		 * read
+		 * create a new Vector2D Object out or our Point2D-particleVectors so we
+		 * can use all those fancy methods from the vecmath library
 		 */
-		double massDiffOne = particleOne.getMass() - particleTwo.getMass();
-		double massDiffTwo = particleTwo.getMass() - particleOne.getMass();
-		double massSum = particleOne.getMass() + particleTwo.getMass();
-		double pOneX = particleOne.getVector().getX();
-		double pOneY = particleOne.getVector().getY();
-		double pTwoX = particleTwo.getVector().getX();
-		double pTwoY = particleTwo.getVector().getY();
+		Vector2d vectorOne = new Vector2d(particleOne.getVector().getX(), particleOne.getVector().getY());
+		System.out.println(vectorOne);
+		Vector2d vectorTwo = new Vector2d(particleTwo.getVector().getX(), particleTwo.getVector().getY());
+		System.out.println(vectorTwo);
 
-		/* new X and Y velocitys for particleOne */
-		double newParticleOneVelocityX = pOneX * massDiffOne + (2 * particleTwo.getMass() * pTwoX) / (massSum);
-		double newParticleOneVelocityY = pOneY * massDiffOne + (2 * particleTwo.getMass() * pTwoY) / (massSum);
+		/*
+		 * the vector between the central points of both particles and the
+		 * vector which stays right-angled to vectorCentral. to get
+		 * vectorOrthogonal you have to switch the x and y coordinates and
+		 * multiply one of them by -1
+		 */
+		Vector2d vectorCentral = new Vector2d(vectorOne.getX() - vectorTwo.getX(), vectorOne.getY() - vectorTwo.getY());
+		Vector2d vectorOrthogonal = new Vector2d(vectorCentral.getY(), vectorCentral.getX() * -1);
 
-		/* new X and Y velocitys for particleTwo */
-		double newParticleTwoVelocityX = pTwoX * massDiffTwo + (2 * particleOne.getMass() * pOneX) / (massSum);
-		double newParticleTwoVelocityY = pTwoY * massDiffTwo + (2 * particleOne.getMass() * pOneY) / (massSum);
+		/* normalize to prevent strange reactions */
+		vectorOne.normalize();
+		vectorTwo.normalize();
+		vectorCentral.normalize();
+		vectorOrthogonal.normalize();
 
-		/* apply the new velocitys */
-		particleOne.setVector(new Point2D.Double(newParticleOneVelocityX, newParticleOneVelocityY));
-		particleTwo.setVector(new Point2D.Double(newParticleTwoVelocityX, newParticleTwoVelocityY));
+		/* actually calculate the angle */
+		vectorAngle = vectorOne.angle(vectorTwo);
+
+		vectorOne.set(vectorCentral.getX(), vectorCentral.getY());
+		vectorOne.set(vectorOrthogonal.getX(), vectorOrthogonal.getY());
 	}
 
 	/*
