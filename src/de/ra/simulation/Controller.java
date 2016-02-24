@@ -19,6 +19,10 @@ import javax.swing.event.ChangeListener;
 @SuppressWarnings("serial")
 public class Controller extends JPanel {
 
+	private static String PAUSE_TEXT = "pausieren";
+
+	private static String CONTINUE_TEXT = "fortsetzen";
+
 	public Controller(Universe universe) {
 		initializeButtonControl(this, universe);
 	}
@@ -50,6 +54,7 @@ public class Controller extends JPanel {
 
 		spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1, 10000000, 100));
 		spinnerMass.addChangeListener(new ChangeListener() {
+
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerMass.getValue();
@@ -75,6 +80,7 @@ public class Controller extends JPanel {
 
 		spinnerDensity = new JSpinner(new SpinnerNumberModel(universe.getParticleDensity(), 0.1, 15, 0.1));
 		spinnerDensity.addChangeListener(new ChangeListener() {
+
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerDensity.getValue();
@@ -110,7 +116,26 @@ public class Controller extends JPanel {
 		/*
 		 * --- Pause ---
 		 */
-		button = new JButton("pausieren");
+		final JButton pauseButton = new JButton(PAUSE_TEXT);
+		gbc.gridy++;
+		gbc.anchor = GridBagConstraints.PAGE_END;
+		gbc.insets = new Insets(10, 0, 0, 0);
+		pauseButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				universe.setPauseFlag(!universe.isPauseFlag());
+				pauseButton.setText(universe.isPauseFlag() ? CONTINUE_TEXT : PAUSE_TEXT);
+			}
+		});
+		panel.add(pauseButton, gbc);
+
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
+
+		button = new JButton("Auswertung");
 		gbc.gridy++;
 		gbc.anchor = GridBagConstraints.PAGE_END;
 		gbc.insets = new Insets(10, 0, 0, 0);
@@ -118,15 +143,10 @@ public class Controller extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				universe.pauseParticleMovement();
 
 			}
 		});
 		panel.add(button, gbc);
-
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
 
 		/*
 		 * --- Testbuttons ---
@@ -140,7 +160,7 @@ public class Controller extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Point startParticleOne = new Point(900, 500);
+				Point startParticleOne = new Point(600, 500);
 				Point startParticleTwo = new Point(200, 500);
 				Point endParticleOne = new Point(200, 500);
 				Point endParticleTwo = new Point(900, 500);
@@ -163,7 +183,7 @@ public class Controller extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Point startParticleOne = new Point(900, 500);
+				Point startParticleOne = new Point(600, 500);
 				Point startParticleTwo = new Point(200, 500);
 				Point end = new Point(500, 800);
 
@@ -185,7 +205,7 @@ public class Controller extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Point startParticleOne = new Point(900, 500);
+				Point startParticleOne = new Point(600, 500);
 				Point startParticleTwo = new Point(200, 500);
 				Point end = new Point(500, 200);
 

@@ -83,8 +83,9 @@ public class Particle {
 	public void calculateVector(Point start, Point end) {
 		double dx = (double) (end.getX() - start.getX());
 		double dy = (double) (end.getY() - start.getY());
-		dx /= 10;
-		dy /= 10;
+		int fakeMovementSpeedMultiplier = 5;
+		dx /= fakeMovementSpeedMultiplier;
+		dy /= fakeMovementSpeedMultiplier;
 		this.vector = new Vector2d(dx, dy);
 		velocity = vector.length();
 		vector.normalize();

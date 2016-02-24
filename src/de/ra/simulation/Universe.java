@@ -5,6 +5,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
@@ -64,7 +65,8 @@ public class Universe extends Observable {
 	 */
 	private Dimension windowSize;
 
-	private boolean pauseFlag;
+	/* TODO */
+	private static boolean pauseFlag = false; // reaktionszeit von max 15ms
 
 	/*
 	 * --- getter and setter ---
@@ -90,9 +92,19 @@ public class Universe extends Observable {
 		windowSize = dimension;
 	}
 
+	public boolean isPauseFlag() {
+		return pauseFlag;
+	}
+
+	public void setPauseFlag(boolean pauseFlag) {
+		Universe.pauseFlag = pauseFlag;
+	}
+
 	/*
 	 * --- Constructor ---
 	 */
+
+	HashSet<CollisionFlag> collisionSet = new HashSet<>();
 
 	/* TODO */
 	public Universe() {
@@ -104,20 +116,46 @@ public class Universe extends Observable {
 		 */
 		double timeSteps = 1000d / period;
 		timer.scheduleAtFixedRate(new TimerTask() {
+
 			@Override
 			public void run() {
+
+				/* check for pause status, continue if its on false */
+				if (isPauseFlag())
+					return;
+
 				List<Particle> particleListCopy = getParticleList();
 
+				/* TODO */
 				for (Particle particle : particleListCopy) {
 					particle.moveParticle(timeSteps);
 					bounceOffBorder(particle);
 				}
 
-				Particle particle;
+				/* TODO */
+				Particle particleOne;
+
+				/* TODO */
 				for (int i = 0; i < particleListCopy.size() - 1; i++) {
-					particle = particleListCopy.get(i);
+					particleOne = particleListCopy.get(i);
 					for (int j = i + 1; j < particleListCopy.size(); j++) {
-						checkForCollision(particle, particleListCopy.get(j));
+						final Particle particleTwo = particleListCopy.get(j);
+
+						CollisionFlag collisionFlag = new CollisionFlag(particleOne, particleTwo);
+						if (collisionSet.contains(collisionFlag)) {
+							if (collisionFlag.stillColliding(Universe.this))
+								continue;
+							collisionSet.remove(collisionFlag);
+						}
+
+						if (checkForIntersection(particleOne, particleTwo)) {
+							System.out.println("Intersection: true");
+							if (checkForCollision(particleOne, particleTwo)) {
+								System.out.println("Collision: true");
+								elasticTwoDimensionalCollision(particleOne, particleTwo);
+								collisionSet.add(collisionFlag);
+							}
+						}
 					}
 				}
 
@@ -153,19 +191,20 @@ public class Universe extends Observable {
 	 * using the AABB-collision check (axis-aligned bounding box) to check
 	 * whether two particles are near each other.
 	 */
-	protected void checkForIntersection(Particle particleOne, Particle particleTwo) {
+	protected boolean checkForIntersection(Particle particleOne, Particle particleTwo) {
 		Rectangle2D boundsOne = particleOne.getHullShape().getBounds2D();
 		Rectangle2D boundsTwo = particleTwo.getHullShape().getBounds2D();
 		if (boundsOne.intersects(boundsTwo)) {
-
+			return true;
 		}
+		return false;
 	}
 
 	/*
 	 * Using trigonometery, we can determine the distance between the two points
 	 * and therefore the point of collision.
 	 */
-	protected void checkForCollision(Particle particleOne, Particle particleTwo) {
+	protected boolean checkForCollision(Particle particleOne, Particle particleTwo) {
 
 		/*
 		 * Phytagorean theorem: a^2+b^2=c^2, so Math.sqrt(c^2) will give us the
@@ -176,12 +215,28 @@ public class Universe extends Observable {
 		double c = Math.sqrt((a * a) + (b * b));
 
 		/*
-		 * A collision occured if the radii of both particles added together is
-		 * smaller than the value of c
+		 * A collision occured if the sum of the particle radii is less than c
 		 */
-		if (c <= (particleOne.getRadius() + particleTwo.getRadius())) {
-			elasticTwoDimensionalCollision(particleOne, particleTwo);
+		if (c < (particleOne.getRadius() + particleTwo.getRadius())) {
+			return true;
 		}
+		return false;
+	}
+
+	/*
+	 * this method detects the collision point between two particles, this can
+	 * be used to add particle effects and to localize the point at which new
+	 * particles are created if the bigger one gets destroyed
+	 */
+	protected void detectCollisionPoint(Particle particleOne, Particle particleTwo) {
+
+		double collisionPointX = (particleOne.getLocation().getX() * particleTwo.getRadius())
+				+ (particleTwo.getLocation().getX() * particleOne.getRadius())
+						/ (particleOne.getRadius() + particleTwo.getRadius());
+
+		double collisionPointY = (particleOne.getLocation().getY() * particleTwo.getRadius())
+				+ (particleTwo.getLocation().getY() * particleOne.getRadius())
+						/ (particleOne.getRadius() + particleTwo.getRadius());
 	}
 
 	/*
@@ -196,64 +251,47 @@ public class Universe extends Observable {
 	 * speed after bumping into each other
 	 */
 	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
-		/* the angle at which the two particles collide */
-		double vectorAngleAlpha;
 
-		/*
-		 * create a new Vector2D Object out or our Point2D-particleVectors so we
-		 * can use all those fancy methods from the vecmath library
-		 */
-		Vector2d vectorOne = new Vector2d(particleOne.getVector().getX(), particleOne.getVector().getY());
-		vectorOne.normalize();
-		Vector2d vectorTwo = new Vector2d(particleTwo.getVector().getX(), particleTwo.getVector().getY());
-		vectorTwo.normalize();
+		Vector2d unitVector = new Vector2d(particleTwo.getLocation().getX() - particleOne.getLocation().getX(),
+				particleTwo.getLocation().getY() - particleOne.getLocation().getY());
 
-		/* the vector between the central points of both particles... */
-		Vector2d vectorCentral = new Vector2d(vectorOne.getX() - vectorTwo.getX(), vectorOne.getY() - vectorTwo.getY());
-		vectorCentral.normalize();
+		unitVector.normalize();
 
-		/*
-		 * ...and the vector which stays right-angled to vectorCentral. This
-		 * will actually be two vector which are pointing towards opposite
-		 * directions. To get vectorOrthogonalOne you have to switch the x and y
-		 * coordinates and multiply one of those by -1. To get number two you
-		 * have to do the same with the other point.
-		 * 
-		 * e.g. one = (vC.y , vC.x*-1) & two = (vC.y*-1 , vC.x)
-		 */
-		Vector2d vectorOrthogonalOne = new Vector2d(vectorCentral.getY(), -vectorCentral.getX());
-		vectorOrthogonalOne.normalize();
-		Vector2d vectorOrthogonalTwo = new Vector2d(-vectorCentral.getY(), vectorCentral.getX());
-		vectorOrthogonalTwo.normalize();
+		Vector2d tangentVector = new Vector2d(-unitVector.y, unitVector.x);
 
-		/* calculate the two angles between vectorCentral and vectorOrhogonal */
-		vectorAngleAlpha = vectorOne.angle(vectorTwo);
+		double v1n = unitVector.dot(particleOne.getVector());
+		double v1t = tangentVector.dot(particleOne.getVector());
+		double v2n = unitVector.dot(particleTwo.getVector());
+		double v2t = tangentVector.dot(particleTwo.getVector());
 
-		System.out.println("Winkel Alpha: " + vectorAngleAlpha + " - " + Math.toDegrees(vectorAngleAlpha));
+		double v1nPrime = (v1n * (particleOne.getMass() - particleTwo.getMass()) + 2. * particleTwo.getMass() * v2n)
+				/ (particleOne.getMass() + particleTwo.getMass());
+		double v2nPrime = (v2n * (particleTwo.getMass() - particleOne.getMass()) + 2. * particleOne.getMass() * v1n)
+				/ (particleOne.getMass() + particleTwo.getMass());
 
-		if (vectorAngleAlpha < Math.PI / 2) {
-			rotate(vectorOrthogonalOne, vectorAngleAlpha);
-			rotate(vectorOrthogonalTwo, vectorAngleAlpha);
-		} else if (vectorAngleAlpha > Math.PI / 2) {
-			rotate(vectorOrthogonalOne, Math.PI - vectorAngleAlpha);
-			rotate(vectorOrthogonalTwo, Math.PI - vectorAngleAlpha);
-		}
+		Vector2d v_v1nPrime = new Vector2d(unitVector.x * v1nPrime, unitVector.y * v1nPrime);
+		Vector2d v_v1tPrime = new Vector2d(tangentVector.x * v1t, tangentVector.y * v1t);
+		Vector2d v_v2nPrime = new Vector2d(unitVector.x * v2nPrime, unitVector.y * v2nPrime);
+		Vector2d v_v2tPrime = new Vector2d(tangentVector.x * v2t, tangentVector.y * v2t);
 
-		/*
-		 * set the vector for both particles to the jsut calculated central and
-		 * orthogonal vectors
-		 */
-		particleOne.setVector(vectorOrthogonalTwo);
-		particleTwo.setVector(vectorOrthogonalOne);
+		Vector2d n1 = new Vector2d(v_v1nPrime.x + v_v1tPrime.x, v_v1nPrime.y + v_v1tPrime.y);
+		Vector2d n2 = new Vector2d(v_v2nPrime.x + v_v2tPrime.x, v_v2nPrime.y + v_v2tPrime.y);
+		particleOne.setVector(n1);
+		particleTwo.setVector(n2);
 
 	}
 
-	public Vector2d rotate(Vector2d v, double theta) {
+	/* TODO */
+	protected Vector2d rotate(Vector2d v, double theta) {
 		Point2D point = new Point2D.Double(v.x, v.y);
 		AffineTransform.getRotateInstance(theta, 0, 0).transform(point, point);
 		v.x = point.getX();
 		v.y = point.getY();
 		return v;
+	}
+
+	protected void particleFission(Particle particleOne, Particle particleTwo) {
+
 	}
 
 	/*
@@ -268,26 +306,13 @@ public class Universe extends Observable {
 		return particle;
 	}
 
+	/*
+	 * delete the content of the particleList so we can start with a fresh
+	 * contentPane without drawings
+	 */
 	public void clearParticles() {
 		synchronized (particleList) {
 			particleList.clear();
 		}
-	}
-
-	public void pauseParticleMovement() {
-		if (pauseFlag == false)
-			for (Particle particle : particleList) {
-				double tempVelocity;
-				tempVelocity = particle.getVelocity();
-				particle.setVelocity(0);
-			}
-		else {
-			for (Particle particle : particleList) {
-				double tempVelocity;
-				tempVelocity = particle.getVelocity();
-				particle.setVelocity(0);
-			}
-		}
-
 	}
 }

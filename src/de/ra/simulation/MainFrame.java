@@ -6,6 +6,7 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Random;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -19,13 +20,14 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
  * 
  * TODO:
  * ! Problem bei Kollision, Partikel bleiben aneinander haften -> beheben
- * ! Kollision wird falsch berechnet (sieht aus wie eckige Sprünge)
- * ! einfacher Klicken reicht nicht aus um Partikel zu erzeugen
- * - Testbuttons für <90°, >90°
- * - Pausebutton
  * - Option: Vektoren für jeden Partikel einzeichnen
  * - Partikelspaltung implementieren
+ * - Button: Auswertung
+ * - Auswertungsfenster mit Zahlenwerten
+ * - Kollisionen/s, Spaltugen/s [pro Sekunde, Minute, Stunde]
  * - Gravitation implementieren
+ * - konsistente Namensgebung
+ * - Codeleichen löschen, Kommentare prüfen
  * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
  * - JSpinner in Controller in 1^10er Schritten steigen lassen
  */
@@ -45,7 +47,7 @@ public class MainFrame extends JFrame {
 	public MainFrame() {
 
 		/* set the basic parameters for the JFrame */
-		setTitle("Gravity Simulator");
+		setTitle("Partikelsimulator");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(500, 100, 1000, 1000);
 
@@ -78,14 +80,35 @@ public class MainFrame extends JFrame {
 			 */
 			Point start;
 
+			/*
+			 * the starting point gets set at the psoition on which the mouse
+			 * button was pressed
+			 */
+			@Override
 			public void mousePressed(MouseEvent me) {
 				start = me.getPoint();
 			}
 
+			/*
+			 * the particle vector will be calculated from the startand endpoint
+			 * and normalized after that, the velocity is the distance between
+			 * those points
+			 */
 			@Override
 			public void mouseReleased(MouseEvent me) {
 				super.mouseReleased(me);
 				Point end = me.getPoint();
+				/*
+				 * if the mouse doesn't move we can't create particles because
+				 * they need a vector, so we give each particle an initial small
+				 * vactor with random values between -1 and 1 for x and y
+				 */
+				if (end.distance(start) < 0.1) {
+					Random rand = new Random();
+					double x = end.getX() + (rand.nextInt(1) + 1) * (rand.nextBoolean() ? -1 : 1);
+					double y = end.getY() + (rand.nextInt(1) + 1) * (rand.nextBoolean() ? -1 : 1);
+					end.setLocation(x, y);
+				}
 				Particle particle = universe.createParticle((int) start.getX(), (int) start.getY());
 				particle.calculateVector(start, end);
 			}
@@ -104,6 +127,7 @@ public class MainFrame extends JFrame {
 		}
 
 		EventQueue.invokeLater(new Runnable() {
+
 			public void run() {
 				try {
 					new MainFrame().setVisible(true);
