@@ -1,7 +1,7 @@
 package de.ra.simulation;
 
 /* TODO */
-public class CollisionFlag {
+public class CollisionFlag implements Comparable<CollisionFlag> {
 
 	private final Particle particleOne;
 
@@ -13,18 +13,20 @@ public class CollisionFlag {
 	}
 
 	public boolean stillColliding(Universe universe) {
-		return universe.checkForCollision(particleOne, particleTwo);
+		boolean still = universe.checkForCollision(particleOne, particleTwo);
+		System.out.println("still: " + still + " (" + particleOne.toString() + "," + particleTwo.toString() + ")");
+		return still;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (obj instanceof CollisionFlag) {
-			CollisionFlag flag = (CollisionFlag) obj;
-			return flag.particleOne == particleOne && flag.particleTwo == particleTwo
-					|| flag.particleTwo == particleOne && flag.particleOne == particleTwo;
-		}
+	public int compareTo(CollisionFlag flag) {
 
-		return false;
+		if ((flag.particleOne.getId() == particleOne.getId() && flag.particleTwo.getId() == particleTwo.getId())
+				|| (flag.particleTwo.getId() == particleOne.getId() && flag.particleOne.getId() == particleTwo.getId()))
+			return 0;
+
+		return (particleOne.toString() + particleTwo.toString())
+				.compareToIgnoreCase(particleOne.toString() + particleTwo.toString());
 	}
 
 }

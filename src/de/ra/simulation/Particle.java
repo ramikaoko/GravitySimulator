@@ -4,11 +4,27 @@ import java.awt.Point;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.vecmath.Vector2d;
 
 /* TODO: particle description */
 public class Particle {
+
+	/*
+	 * the particleCounter is used to get a specific particle out of the
+	 * particleList, this is useful for managing the list after a collison and
+	 * other things. It is an AtomicInteger so we can automatically
+	 * getAndIncrement it after each particle is created
+	 */
+	private static AtomicInteger COUNTER = new AtomicInteger(0);
+
+	private static int getNewId() {
+		synchronized (COUNTER) {
+			int newID = COUNTER.incrementAndGet();
+			return newID;
+		}
+	}
 
 	/* the mass of a particle */
 	private double mass;
@@ -24,6 +40,8 @@ public class Particle {
 
 	/* the vector of a particle in the jframe */
 	private Vector2d vector = new Vector2d();
+
+	private final int id;
 
 	private double velocity;
 
@@ -73,6 +91,7 @@ public class Particle {
 		this.density = density;
 		this.radius = calculateRadius();
 		this.location = new Point2D.Double(x, y);
+		id = getNewId();
 	}
 
 	/*
@@ -93,7 +112,7 @@ public class Particle {
 
 	/* TODO */
 	public double calculateRadius() {
-		return Math.log(Math.E + mass / Math.pow(2, density));
+		return Math.log(Math.E + mass / Math.pow(2, density) * 10000);
 	}
 
 	/* TODO */
@@ -116,6 +135,15 @@ public class Particle {
 		Ellipse2D circle = new Ellipse2D.Double(location.getX() - coreRadius, location.getY() - coreRadius,
 				2 * coreRadius, 2 * coreRadius);
 		return circle;
+	}
+
+	@Override
+	public String toString() {
+		return id + "";
+	}
+
+	public int getId() {
+		return id;
 	}
 
 }
