@@ -2,7 +2,6 @@ package de.ra.simulation;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,9 +18,13 @@ import javax.swing.event.ChangeListener;
 @SuppressWarnings("serial")
 public class Controller extends JPanel {
 
-	private static String PAUSE_TEXT = "pausieren";
+	private static final String PAUSE_TEXT = "Pause";
 
-	private static String CONTINUE_TEXT = "fortsetzen";
+	private static final String CONTINUE_TEXT = "Weiter";
+
+	private static final double MAX_MASS = 10000000;
+
+	private static final double MAX_DENSITY = 15;
 
 	public Controller(Universe universe) {
 		initializeButtonControl(this, universe);
@@ -32,8 +35,6 @@ public class Controller extends JPanel {
 		JButton button;
 		JLabel label;
 		JSeparator separator;
-		JSpinner spinnerMass;
-		JSpinner spinnerDensity;
 
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -49,12 +50,10 @@ public class Controller extends JPanel {
 
 		label = new JLabel("Masse: ", (int) CENTER_ALIGNMENT);
 		gbc.gridy++;
-		gbc.insets = new Insets(10, 0, 0, 0);
 		panel.add(label, gbc);
 
-		spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1, 10000000, 100));
+		JSpinner spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1, MAX_MASS, 100));
 		spinnerMass.addChangeListener(new ChangeListener() {
-
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerMass.getValue();
@@ -62,7 +61,6 @@ public class Controller extends JPanel {
 					universe.setParticleMass(((Number) value).doubleValue());
 			}
 		});
-		gbc.gridx = 0;
 		gbc.gridy++;
 		panel.add(spinnerMass, gbc);
 
@@ -75,12 +73,11 @@ public class Controller extends JPanel {
 
 		label = new JLabel("Dichte: ", (int) CENTER_ALIGNMENT);
 		gbc.gridy++;
-		gbc.insets = new Insets(10, 0, 0, 0);
 		panel.add(label, gbc);
 
-		spinnerDensity = new JSpinner(new SpinnerNumberModel(universe.getParticleDensity(), 0.1, 15, 0.1));
+		JSpinner spinnerDensity = new JSpinner(
+				new SpinnerNumberModel(universe.getParticleDensity(), 0.1, MAX_DENSITY, 0.1));
 		spinnerDensity.addChangeListener(new ChangeListener() {
-
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerDensity.getValue();
@@ -88,27 +85,82 @@ public class Controller extends JPanel {
 					universe.setParticleDensity(((Number) value).doubleValue());
 			}
 		});
-		gbc.gridx = 0;
 		gbc.gridy++;
 		panel.add(spinnerDensity, gbc);
 
+		/*
+		 * --- velocity ---
+		 */
 		separator = new JSeparator();
 		gbc.gridy++;
 		panel.add(separator, gbc);
 
-		/*
-		 * --- Delete ---
-		 */
-		button = new JButton("löschen");
+		JLabel velocityLabel = new JLabel("Zufallsgeschwindigkeit: ", (int) CENTER_ALIGNMENT);
+		gbc.gridy++;
+		panel.add(velocityLabel, gbc);
+
+		/* JSpinner und label für untere Grenze */
+		label = new JLabel("untere Grenze ", (int) CENTER_ALIGNMENT);
+		gbc.gridy++;
+		panel.add(label, gbc);
+
+		JSpinner spinnerBottomVelocity = new JSpinner(new SpinnerNumberModel(
+				universe.getParticleBottomVelocityMultiplier(), universe.getParticleBottomVelocityMultiplier(),
+				universe.getParticleTopVelocityMultiplier(), 0.1));
+		spinnerBottomVelocity.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Object value = spinnerBottomVelocity.getValue();
+				if (value instanceof Number)
+					universe.setParticleDensity(((Number) value).doubleValue());
+			}
+		});
+		gbc.gridy++;
+		panel.add(spinnerBottomVelocity, gbc);
+
+		/* JSpinner und label für obere Grenze */
+		label = new JLabel("obere Grenze", (int) CENTER_ALIGNMENT);
+		gbc.gridy++;
+		panel.add(label, gbc);
+
+		JSpinner spinnerTopVelocity = new JSpinner(new SpinnerNumberModel(universe.getParticleTopVelocityMultiplier(),
+				universe.getParticleBottomVelocityMultiplier(), universe.getParticleTopVelocityMultiplier(), 0.1));
+		spinnerTopVelocity.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Object value = spinnerTopVelocity.getValue();
+				if (value instanceof Number)
+					universe.setParticleDensity(((Number) value).doubleValue());
+			}
+		});
+		gbc.gridy++;
+		panel.add(spinnerTopVelocity, gbc);
+
+		final JButton velocityButton = new JButton("Berechnung");
 		gbc.gridy++;
 		gbc.anchor = GridBagConstraints.PAGE_END;
-		gbc.insets = new Insets(10, 0, 0, 0);
-		button.addActionListener(new ActionListener() {
+		velocityButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				universe.clearParticles();
 
+			}
+		});
+		panel.add(velocityButton, gbc);
+
+		/*
+		 * --- delete ---
+		 */
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
+
+		button = new JButton("löschen");
+		gbc.gridy++;
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				universe.clearParticles();
 			}
 		});
 		panel.add(button, gbc);
@@ -118,8 +170,6 @@ public class Controller extends JPanel {
 		 */
 		final JButton pauseButton = new JButton(PAUSE_TEXT);
 		gbc.gridy++;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		gbc.insets = new Insets(10, 0, 0, 0);
 		pauseButton.addActionListener(new ActionListener() {
 
 			@Override
@@ -131,14 +181,8 @@ public class Controller extends JPanel {
 		});
 		panel.add(pauseButton, gbc);
 
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
-
 		button = new JButton("Auswertung");
 		gbc.gridy++;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		gbc.insets = new Insets(10, 0, 0, 0);
 		button.addActionListener(new ActionListener() {
 
 			@Override
@@ -151,11 +195,12 @@ public class Controller extends JPanel {
 		/*
 		 * --- Testbuttons ---
 		 */
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
 
 		button = new JButton("Alpha = 90°");
 		gbc.gridy++;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		gbc.insets = new Insets(10, 0, 0, 0);
 		button.addActionListener(new ActionListener() {
 
 			@Override
@@ -177,8 +222,6 @@ public class Controller extends JPanel {
 		/* Alpha < 90° */
 		button = new JButton("Alpha < 90°");
 		gbc.gridy++;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		gbc.insets = new Insets(10, 0, 0, 0);
 		button.addActionListener(new ActionListener() {
 
 			@Override
@@ -199,8 +242,6 @@ public class Controller extends JPanel {
 		/* Alpha > 90° */
 		button = new JButton("Alpha > 90°");
 		gbc.gridy++;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		gbc.insets = new Insets(10, 0, 0, 0);
 		button.addActionListener(new ActionListener() {
 
 			@Override

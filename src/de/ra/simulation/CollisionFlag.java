@@ -26,7 +26,7 @@ public class CollisionFlag implements Comparable<CollisionFlag> {
 			return 0;
 
 		return (particleOne.toString() + particleTwo.toString())
-				.compareToIgnoreCase(particleOne.toString() + particleTwo.toString());
+				.compareToIgnoreCase(flag.particleOne.toString() + flag.particleTwo.toString());
 	}
 
 }

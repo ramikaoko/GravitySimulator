@@ -51,6 +51,15 @@ public class Universe extends Observable {
 	private double particleDensity = 1d;
 
 	/*
+	 * The multiplier will be used in the calculateVector() method out of
+	 * Particle(), it is applied to the vector to get the movement speed for
+	 * each particle. In Controller() the multiplier gets a random value between
+	 * these two values
+	 */
+	private double particleBottomVelocityMultiplier = 1d;
+	private double particleTopVelocityMultiplier = 10d;
+
+	/*
 	 * the size of the contentPane, it's used for collision detection with the
 	 * borders of our panel
 	 */
@@ -85,6 +94,22 @@ public class Universe extends Observable {
 		this.particleDensity = particleDensity;
 	}
 
+	public double getParticleBottomVelocityMultiplier() {
+		return particleBottomVelocityMultiplier;
+	}
+
+	public void setParticleBottomVelocityMultiplier(double particleBottomVelocityMultiplier) {
+		this.particleBottomVelocityMultiplier = particleBottomVelocityMultiplier;
+	}
+
+	public double getParticleTopVelocityMultiplier() {
+		return particleTopVelocityMultiplier;
+	}
+
+	public void setParticleTopVelocityMultiplier(double particleTopVelocityMultiplier) {
+		this.particleTopVelocityMultiplier = particleTopVelocityMultiplier;
+	}
+
 	public void setWindowSize(Dimension windowSize) {
 		this.windowSize = windowSize;
 	}
@@ -104,10 +129,11 @@ public class Universe extends Observable {
 	/* TODO */
 	public Universe() {
 		Timer timer = new Timer(false);
-		int period = 15;
+
+		int period = 4;
 		/*
 		 * timeSteps will determine the calculation speed so it doesn't conflict
-		 * with the time to draw the image, 1000d/15 ≈ 66fps
+		 * with the time to draw the image, 1000d/4 ≈ 250 steps per cycle
 		 */
 		double timeSteps = 1000d / period;
 		timer.scheduleAtFixedRate(new TimerTask() {
