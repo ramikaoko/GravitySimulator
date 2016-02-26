@@ -2,6 +2,7 @@ package de.ra.simulation;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -38,6 +39,7 @@ public class Controller extends JPanel {
 
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(0, 0, 5, 0);
 
 		/*
 		 * --- mass ---
@@ -89,85 +91,12 @@ public class Controller extends JPanel {
 		panel.add(spinnerDensity, gbc);
 
 		/*
-		 * --- velocity ---
-		 */
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
-
-		JLabel velocityLabel = new JLabel("Zufallsgeschwindigkeit: ", (int) CENTER_ALIGNMENT);
-		gbc.gridy++;
-		panel.add(velocityLabel, gbc);
-
-		/* JSpinner und label für untere Grenze */
-		label = new JLabel("untere Grenze ", (int) CENTER_ALIGNMENT);
-		gbc.gridy++;
-		panel.add(label, gbc);
-
-		JSpinner spinnerBottomVelocity = new JSpinner(new SpinnerNumberModel(
-				universe.getParticleBottomVelocityMultiplier(), universe.getParticleBottomVelocityMultiplier(),
-				universe.getParticleTopVelocityMultiplier(), 0.1));
-		spinnerBottomVelocity.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				Object value = spinnerBottomVelocity.getValue();
-				if (value instanceof Number)
-					universe.setParticleDensity(((Number) value).doubleValue());
-			}
-		});
-		gbc.gridy++;
-		panel.add(spinnerBottomVelocity, gbc);
-
-		/* JSpinner und label für obere Grenze */
-		label = new JLabel("obere Grenze", (int) CENTER_ALIGNMENT);
-		gbc.gridy++;
-		panel.add(label, gbc);
-
-		JSpinner spinnerTopVelocity = new JSpinner(new SpinnerNumberModel(universe.getParticleTopVelocityMultiplier(),
-				universe.getParticleBottomVelocityMultiplier(), universe.getParticleTopVelocityMultiplier(), 0.1));
-		spinnerTopVelocity.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				Object value = spinnerTopVelocity.getValue();
-				if (value instanceof Number)
-					universe.setParticleDensity(((Number) value).doubleValue());
-			}
-		});
-		gbc.gridy++;
-		panel.add(spinnerTopVelocity, gbc);
-
-		final JButton velocityButton = new JButton("Berechnung");
-		gbc.gridy++;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		velocityButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-
-			}
-		});
-		panel.add(velocityButton, gbc);
-
-		/*
-		 * --- delete ---
-		 */
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
-
-		button = new JButton("löschen");
-		gbc.gridy++;
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				universe.clearParticles();
-			}
-		});
-		panel.add(button, gbc);
-
-		/*
 		 * --- Pause ---
 		 */
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
+
 		final JButton pauseButton = new JButton(PAUSE_TEXT);
 		gbc.gridy++;
 		pauseButton.addActionListener(new ActionListener() {
@@ -188,6 +117,20 @@ public class Controller extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
+			}
+		});
+		panel.add(button, gbc);
+
+		/*
+		 * --- delete ---
+		 */
+
+		button = new JButton("löschen");
+		gbc.gridy++;
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				universe.clearParticles();
 			}
 		});
 		panel.add(button, gbc);

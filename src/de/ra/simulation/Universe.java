@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
@@ -51,15 +52,6 @@ public class Universe extends Observable {
 	private double particleDensity = 1d;
 
 	/*
-	 * The multiplier will be used in the calculateVector() method out of
-	 * Particle(), it is applied to the vector to get the movement speed for
-	 * each particle. In Controller() the multiplier gets a random value between
-	 * these two values
-	 */
-	private double particleBottomVelocityMultiplier = 1d;
-	private double particleTopVelocityMultiplier = 10d;
-
-	/*
 	 * the size of the contentPane, it's used for collision detection with the
 	 * borders of our panel
 	 */
@@ -92,22 +84,6 @@ public class Universe extends Observable {
 
 	public void setParticleDensity(double particleDensity) {
 		this.particleDensity = particleDensity;
-	}
-
-	public double getParticleBottomVelocityMultiplier() {
-		return particleBottomVelocityMultiplier;
-	}
-
-	public void setParticleBottomVelocityMultiplier(double particleBottomVelocityMultiplier) {
-		this.particleBottomVelocityMultiplier = particleBottomVelocityMultiplier;
-	}
-
-	public double getParticleTopVelocityMultiplier() {
-		return particleTopVelocityMultiplier;
-	}
-
-	public void setParticleTopVelocityMultiplier(double particleTopVelocityMultiplier) {
-		this.particleTopVelocityMultiplier = particleTopVelocityMultiplier;
 	}
 
 	public void setWindowSize(Dimension windowSize) {
@@ -192,13 +168,10 @@ public class Universe extends Observable {
 				notifyObservers();
 			}
 		}, 100, period);
-
 	}
 
 	/*
 	 * --- Movement calculations ---
-	 * 
-	 * TODO: Methods for gravity, distance and collision
 	 */
 
 	/*
@@ -221,6 +194,7 @@ public class Universe extends Observable {
 	 * using the AABB-collision check (axis-aligned bounding box) to check
 	 * whether two particles are near each other.
 	 */
+	/* TODO wird nicht aufgerufen, benötigt? */
 	protected boolean checkForIntersection(Particle particleOne, Particle particleTwo) {
 		Rectangle2D boundsOne = particleOne.getHullShape().getBounds2D();
 		Rectangle2D boundsTwo = particleTwo.getHullShape().getBounds2D();
@@ -247,6 +221,7 @@ public class Universe extends Observable {
 		/*
 		 * A collision occured if the sum of the particle radii is less than c
 		 */
+		/* TODO delete ret marker and sysout */
 		boolean ret = false;
 		if (c <= (particleOne.getRadius() + particleTwo.getRadius())) {
 			ret = true;
@@ -256,11 +231,26 @@ public class Universe extends Observable {
 		return ret;
 	}
 
+	/* TODO */
+	protected void decideInteraction(Particle particleOne, Particle particleTwo) {
+		int random = new Random().nextInt(11);
+		int davidBeatsGoliath = 2;
+		if (davidBeatsGoliath * particleOne.getRadius() < particleTwo.getRadius()
+				&& particleOne.getVelocity() > davidBeatsGoliath * particleTwo.getVelocity()) {
+			particleSplit(particleOne, particleTwo);
+		} else if (random <= 2) {
+			particleAbsorption(particleOne, particleTwo);
+		} else if (random > 2) {
+			elasticTwoDimensionalCollision(particleOne, particleTwo);
+		}
+	}
+
 	/*
-	 * this method detects the collision point between two particles, this can
+	 * This method detects the collision point between two particles, this can
 	 * be used to add particle effects and to localize the point at which new
 	 * particles are created if the bigger one gets destroyed
 	 */
+	/* TODO wird nicht aufgerufen, benötigt? */
 	protected void detectCollisionPoint(Particle particleOne, Particle particleTwo) {
 
 		double collisionPointX = (particleOne.getLocation().getX() * particleTwo.getRadius())
@@ -276,14 +266,14 @@ public class Universe extends Observable {
 
 	/*
 	 * The actual collision handling with vector calculation is implemented in
-	 * here. The formula for a two dimensional elastic collision can be seen at
-	 * https://de.wikipedia.org/wiki/Sto%C3%9F_%28Physik%29
+	 * here. The formula for a two dimensional elastic collision can be refered
+	 * here: https://de.wikipedia.org/wiki/Sto%C3%9F_%28Physik%29
 	 */
 	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
 
 		/*
-		 * compute the unit normal vector, this vector connects the center
-		 * points of both particles, we normalize the vector afterwards to
+		 * calculate the unit normal vector, this vector connects the center
+		 * points of both particles. We normalize the vector afterwards to
 		 * prevent strange behavior
 		 */
 		Vector2d vectorNormal = new Vector2d(particleTwo.getLocation().getX() - particleOne.getLocation().getX(),
@@ -325,18 +315,47 @@ public class Universe extends Observable {
 
 	}
 
-	/* TODO */
-	protected Vector2d rotate(Vector2d v, double theta) {
-		Point2D point = new Point2D.Double(v.x, v.y);
+	/* the vector rotates about the angle around a fixed point */
+	protected Vector2d rotate(Vector2d vector, double theta) {
+		Point2D point = new Point2D.Double(vector.x, vector.y);
 		AffineTransform.getRotateInstance(theta, 0, 0).transform(point, point);
-		v.x = point.getX();
-		v.y = point.getY();
-		return v;
+		vector.x = point.getX();
+		vector.y = point.getY();
+		return vector;
 	}
 
 	/* TODO */
 	protected void particleSplit(Particle particleOne, Particle particleTwo) {
-		/* TODO */
+		double dx = particleTwo.getLocation().getX() - particleOne.getLocation().getX();
+		double dy = particleTwo.getLocation().getY() - particleOne.getLocation().getY();
+		double newMass = particleTwo.getMass() / 2;
+		double newVelocityParticleOne = particleOne.getVelocity() * 0.8;
+		double newVelocityParticleSplit = particleOne.getVelocity() * 0.1;
+		/* TODO Particle split */
+
+	}
+
+	/* TODO */
+	protected void particleAbsorption(Particle particleOne, Particle particleTwo) {
+		double random = new Random().nextInt(11);
+		double dx = particleTwo.getLocation().getX() - particleOne.getLocation().getX();
+		double dy = particleTwo.getLocation().getY() - particleOne.getLocation().getY();
+		/* the little shift in position due to the collision */
+		double particleDisplacement = Math.sqrt(dx * dx + dy * dy);
+		double newMass = particleOne.getMass() + particleTwo.getMass();
+		double newDensity = particleOne.getDensity() + particleTwo.getDensity();
+		double newVelocity = particleTwo.getMass() / (particleDisplacement * particleDisplacement);
+
+		particleOne.setMass(newMass);
+		particleOne.setDensity(newDensity);
+		particleOne.setVelocity(newVelocity);
+		/* particleTwo gets destroyed */
+		particleList.remove(particleTwo);
+
+		/* in 5% of those cases, both particles are destroyed */
+		if (random <= 0.5) {
+			particleList.remove(particleOne);
+		}
 	}
 
 	/*

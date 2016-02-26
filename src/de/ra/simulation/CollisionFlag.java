@@ -12,12 +12,14 @@ public class CollisionFlag implements Comparable<CollisionFlag> {
 		this.particleTwo = particleTwo;
 	}
 
+	/* TODO */
 	public boolean stillColliding(Universe universe) {
 		boolean still = universe.checkForCollision(particleOne, particleTwo);
 		System.out.println("still: " + still + " (" + particleOne.toString() + "," + particleTwo.toString() + ")");
 		return still;
 	}
 
+	/* TODO */
 	@Override
 	public int compareTo(CollisionFlag flag) {
 

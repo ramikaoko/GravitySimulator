@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.vecmath.Vector2d;
@@ -31,15 +32,15 @@ public class Particle {
 	/* the radius of a particle */
 	private double radius;
 
-	/* the location of a particle in the jframe */
+	/* the location of a particle in the content panel */
 	private Point2D location;
 
-	/* the vector of a particle in the jframe */
+	/* the vector of a particle in the content panel */
 	private Vector2d vector = new Vector2d();
 
 	/*
 	 * the velocity of a particle is determined by the distance of the start and
-	 * end point of the mouse movement in MainFrame()
+	 * end point of the mouse movement in MainFrame() and a random integer.
 	 */
 	private double velocity;
 
@@ -53,8 +54,16 @@ public class Particle {
 		return mass;
 	}
 
+	public void setMass(double mass) {
+		this.mass = mass;
+	}
+
 	public double getDensity() {
 		return density;
+	}
+
+	public void setDensity(double density) {
+		this.density = density;
 	}
 
 	public double getRadius() {
@@ -97,8 +106,11 @@ public class Particle {
 		}
 	}
 
+	/*
+	 * always normalize() after the vector is set to prevent strange behaviour
+	 */
 	public void setVector(Vector2d vector) {
-		this.vector.set(vector);
+		this.vector = vector;
 		this.vector.normalize();
 	}
 
@@ -117,15 +129,28 @@ public class Particle {
 	/*
 	 * --- Particle calculations ---
 	 */
+
 	/* TODO */
-	public void calculateVector(Point start, Point end) {
+	protected void calculateVector(Point start, Point end) {
 		double dx = (double) (end.getX() - start.getX());
 		double dy = (double) (end.getY() - start.getY());
-		dx *= velocityMultiplier;
-		dy *= velocityMultiplier;
+		calculateRandomVelocityMultiplier();
+		dx /= velocityMultiplier;
+		dy /= velocityMultiplier;
 		this.vector = new Vector2d(dx, dy);
 		velocity = vector.length();
 		vector.normalize();
+	}
+
+	/*
+	 * calculate a random numbher between 2 and 10 which will be used in the
+	 * vector calculation to manipulate the particle velocity. This has to be
+	 * done to meet the requirements of this project, which are at least one
+	 * random parameter which can't be chosen by the user
+	 */
+	protected void calculateRandomVelocityMultiplier() {
+		int random = new Random().nextInt(9) + 2;
+		setVelocityMultiplier(random);
 	}
 
 	/*
@@ -136,26 +161,34 @@ public class Particle {
 	 * particle with a high density is small, a light particle with a high
 	 * density is tiny.
 	 */
-	public double calculateRadius() {
+	protected double calculateRadius() {
 		return Math.log(Math.E + mass / Math.pow(2, density));
 	}
 
 	/* TODO */
-	public void moveParticle(double timeSteps) {
+	protected void moveParticle(double timeSteps) {
 		double nx = vector.getX() * velocity / timeSteps;
 		double ny = vector.getY() * velocity / timeSteps;
 		location.setLocation(location.getX() + nx, location.getY() + ny);
 	}
 
-	/* TODO */
-	public Shape getHullShape() {
+	/*
+	 * We are using the Ellipse class and forming it into a circle by
+	 * multiplying the circle two times. The radius of this circle, combined
+	 * with the color indicates the mass of a particle
+	 */
+	protected Shape getHullShape() {
 		Ellipse2D circle = new Ellipse2D.Double(location.getX() - radius, location.getY() - radius, 2 * radius,
 				2 * radius);
 		return circle;
 	}
 
-	/* TODO */
-	public Shape getCoreShape() {
+	/*
+	 * analog to the hullShape. This inner circle is only half as big as the
+	 * hullShape. This circle, combined with the color indicates the density of
+	 * a particle
+	 */
+	protected Shape getCoreShape() {
 		double coreRadius = radius * 0.5d;
 		Ellipse2D circle = new Ellipse2D.Double(location.getX() - coreRadius, location.getY() - coreRadius,
 				2 * coreRadius, 2 * coreRadius);
