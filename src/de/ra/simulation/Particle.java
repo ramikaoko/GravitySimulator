@@ -12,15 +12,10 @@ import javax.vecmath.Vector2d;
 /* TODO: particle description */
 public class Particle {
 
-	/*
-	 * the particleCounter is used to get a specific particle out of the
-	 * particleList, this is useful for managing the list after a collison and
-	 * other things. It is an AtomicInteger so we can automatically
-	 * getAndIncrement it after each particle is created
-	 */
+	/* used to generate unique ids */
 	private static AtomicInteger COUNTER = new AtomicInteger(0);
 
-	/* TODO */
+	/* the unique id for the particle */
 	private final int id;
 
 	/* the mass of a particle */
@@ -46,6 +41,12 @@ public class Particle {
 
 	/* a multiplier for velocity so the user can change the it if he wants to */
 	private int velocityMultiplier;
+
+	/*
+	 * if the value for velocity becomes to big the particles cant be drawn fast
+	 * enough, so we define a limit of 1000
+	 */
+	private static final double MAX_VELOCITY = 250;
 
 	/*
 	 * --- getter and setter ---
@@ -83,15 +84,7 @@ public class Particle {
 	}
 
 	public void setVelocity(double velocity) {
-		this.velocity = velocity;
-	}
-
-	public int getVelocityMultiplier() {
-		return velocityMultiplier;
-	}
-
-	public void setVelocityMultiplier(int velocityMultiplier) {
-		this.velocityMultiplier = velocityMultiplier;
+		this.velocity = Math.min(velocity, MAX_VELOCITY);
 	}
 
 	public int getId() {
@@ -135,22 +128,22 @@ public class Particle {
 		double dx = (double) (end.getX() - start.getX());
 		double dy = (double) (end.getY() - start.getY());
 		calculateRandomVelocityMultiplier();
-		dx /= velocityMultiplier;
-		dy /= velocityMultiplier;
+		dx *= velocityMultiplier;
+		dy *= velocityMultiplier;
 		this.vector = new Vector2d(dx, dy);
 		velocity = vector.length();
 		vector.normalize();
 	}
 
 	/*
-	 * calculate a random numbher between 2 and 10 which will be used in the
-	 * vector calculation to manipulate the particle velocity. This has to be
-	 * done to meet the requirements of this project, which are at least one
-	 * random parameter which can't be chosen by the user
+	 * Create a random number between 1 and 5 which will be used in the vector
+	 * calculation to manipulate the particle velocity. This has to be done to
+	 * meet the requirements of this project, which are at least one random
+	 * parameter which can't be chosen by the user
 	 */
 	protected void calculateRandomVelocityMultiplier() {
-		int random = new Random().nextInt(9) + 2;
-		setVelocityMultiplier(random);
+		int random = new Random().nextInt(3) + 1;
+		velocityMultiplier = random;
 	}
 
 	/*

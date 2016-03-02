@@ -1,6 +1,6 @@
 package de.ra.simulation;
 
-/* TODO */
+/* We memorize two colliding particles, so those two wont collide again. we ignore collisions between them until they have separated */
 public class CollisionFlag implements Comparable<CollisionFlag> {
 
 	private final Particle particleOne;
@@ -12,14 +12,16 @@ public class CollisionFlag implements Comparable<CollisionFlag> {
 		this.particleTwo = particleTwo;
 	}
 
-	/* TODO */
+	/* set the flag to false if the collision is over */
 	public boolean stillColliding(Universe universe) {
-		boolean still = universe.checkForCollision(particleOne, particleTwo);
-		System.out.println("still: " + still + " (" + particleOne.toString() + "," + particleTwo.toString() + ")");
-		return still;
+		boolean stillColliding = universe.checkForCollision(particleOne, particleTwo);
+		return stillColliding;
 	}
 
-	/* TODO */
+	/*
+	 * two flags are equal if their particles are equal so we check if particle
+	 * one and two of flag one with particle two and one of flag two
+	 */
 	@Override
 	public int compareTo(CollisionFlag flag) {
 

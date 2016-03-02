@@ -79,7 +79,7 @@ public class DrawPane extends JPanel implements Observer {
 		g2d.drawRenderedImage(buffer, AffineTransform.getTranslateInstance(0, 0));
 	}
 
-	/* TODO */
+	/* create two bufferImages on which the picture is drawed */
 	private synchronized void createBuffers() {
 		front = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 		back = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
@@ -133,7 +133,10 @@ public class DrawPane extends JPanel implements Observer {
 		drawFront = !drawFront;
 	}
 
-	/* TODO */
+	/*
+	 * the color of the outer circle changes from white to dark red while the
+	 * mass increases, this and the radius of a particle are indicators for mass
+	 */
 	private Color determineColorMass(Particle particle) {
 		Color cMass = new Color(255, 255, 255);
 		double mass = particle.getMass();
@@ -156,7 +159,11 @@ public class DrawPane extends JPanel implements Observer {
 		return cMass;
 	}
 
-	/* TODO */
+	/*
+	 * the color of the inner circle changes from light grey to black while the
+	 * density increases, this and the decrease of the radius are indicators for
+	 * density
+	 */
 	private Color determineColorDensity(Particle particle) {
 		Color cDensity = new Color(255, 255, 255);
 		double density = particle.getDensity();

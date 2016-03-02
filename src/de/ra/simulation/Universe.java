@@ -51,6 +51,14 @@ public class Universe extends Observable {
 	 */
 	private double particleDensity = 1d;
 
+	/* A bunch of counter to analyse whats happening in the simulation */
+	private int creationCounter = 0;
+	private int collisionCounter = 0;
+	private int destructionCounter = 0;
+	private int bounceCounter = 0;
+	private int absorptionCounter = 0;
+	private int splitCounter = 0;
+
 	/*
 	 * the size of the contentPane, it's used for collision detection with the
 	 * borders of our panel
@@ -63,7 +71,7 @@ public class Universe extends Observable {
 	 */
 	private static boolean pauseFlag = false;
 
-	/* TODO */
+	/* A set of collisionFlags */
 	TreeSet<CollisionFlag> collisionSet = new TreeSet<>();
 
 	/*
@@ -106,7 +114,7 @@ public class Universe extends Observable {
 	public Universe() {
 		Timer timer = new Timer(false);
 
-		int period = 4;
+		int period = 15;
 		/*
 		 * timeSteps will determine the calculation speed so it doesn't conflict
 		 * with the time to draw the image, 1000d/4 ≈ 250 steps per cycle
@@ -124,7 +132,7 @@ public class Universe extends Observable {
 				List<Particle> particleListCopy = getParticleList();
 
 				/*
-				 * we got through the whole particleList and check the movement
+				 * we go through the whole particleList and check the movement
 				 * for each particle, also we check whether the particle
 				 * collided with the border
 				 */
@@ -144,23 +152,19 @@ public class Universe extends Observable {
 						/* TODO */
 						final Particle particleTwo = particleListCopy.get(j);
 
-						/* TODO */
 						CollisionFlag collisionFlag = new CollisionFlag(particleOne, particleTwo);
 
 						if (collisionSet.contains(collisionFlag)) {
 							if (collisionFlag.stillColliding(Universe.this))
 								continue;
-							System.out.println("before: " + collisionSet.size());
 							collisionSet.remove(collisionFlag);
-							System.out.println("after: " + collisionSet.size());
 						}
 
-						// if (checkForIntersection(particleOne, particleTwo)) {
 						if (checkForCollision(particleOne, particleTwo)) {
-							elasticTwoDimensionalCollision(particleOne, particleTwo);
+							decideInteraction(particleOne, particleTwo);
 							collisionSet.add(collisionFlag);
+							collisionCounter++;
 						}
-						// }
 					}
 				}
 
@@ -191,20 +195,6 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * using the AABB-collision check (axis-aligned bounding box) to check
-	 * whether two particles are near each other.
-	 */
-	/* TODO wird nicht aufgerufen, benötigt? */
-	protected boolean checkForIntersection(Particle particleOne, Particle particleTwo) {
-		Rectangle2D boundsOne = particleOne.getHullShape().getBounds2D();
-		Rectangle2D boundsTwo = particleTwo.getHullShape().getBounds2D();
-		if (boundsOne.intersects(boundsTwo)) {
-			return true;
-		}
-		return false;
-	}
-
-	/*
 	 * Using trigonometery, we can determine the distance between the two points
 	 * and therefore the point of collision.
 	 */
@@ -221,47 +211,65 @@ public class Universe extends Observable {
 		/*
 		 * A collision occured if the sum of the particle radii is less than c
 		 */
-		/* TODO delete ret marker and sysout */
-		boolean ret = false;
 		if (c <= (particleOne.getRadius() + particleTwo.getRadius())) {
-			ret = true;
-			System.out
-					.println("collision: " + ret + " (" + particleOne.toString() + "," + particleTwo.toString() + ")");
+			return true;
 		}
-		return ret;
+		return false;
 	}
 
 	/* TODO */
 	protected void decideInteraction(Particle particleOne, Particle particleTwo) {
+		/* The 11 ensures a random int from 0 to 10 */
 		int random = new Random().nextInt(11);
-		int davidBeatsGoliath = 2;
-		if (davidBeatsGoliath * particleOne.getRadius() < particleTwo.getRadius()
-				&& particleOne.getVelocity() > davidBeatsGoliath * particleTwo.getVelocity()) {
-			particleSplit(particleOne, particleTwo);
-		} else if (random <= 2) {
+
+		/*
+		 * A multiplier to ensure that the bigger particle is the one which will
+		 * be destroyed or splitted
+		 */
+		double diffValue = 0.3;
+
+		double sizeDifference = particleOne.getRadius() / particleTwo.getRadius();
+		if (sizeDifference > (1d + diffValue) || sizeDifference < (1d - diffValue)) {
+			System.out.println("Reaction: split");
+			splitCounter++;
+			if (sizeDifference > 1)
+				particleSplit(particleOne, particleTwo);
+			else
+				particleSplit(particleTwo, particleOne);
+
+		} else if (random <= 2)
+
+		{
 			particleAbsorption(particleOne, particleTwo);
-		} else if (random > 2) {
+			System.out.println("Reaction: absorption");
+			absorptionCounter++;
+		} else if (random > 2)
+
+		{
 			elasticTwoDimensionalCollision(particleOne, particleTwo);
+			System.out.println("Reaction: bounce");
+			bounceCounter++;
 		}
+
 	}
 
 	/*
 	 * This method detects the collision point between two particles, this can
-	 * be used to add particle effects and to localize the point at which new
+	 * be used to add particle effects or to localize the point at which new
 	 * particles are created if the bigger one gets destroyed
 	 */
-	/* TODO wird nicht aufgerufen, benötigt? */
-	protected void detectCollisionPoint(Particle particleOne, Particle particleTwo) {
+	protected Point2D detectCollisionPoint(Particle particleOne, Particle particleTwo) {
 
-		double collisionPointX = (particleOne.getLocation().getX() * particleTwo.getRadius())
-				+ (particleTwo.getLocation().getX() * particleOne.getRadius())
-						/ (particleOne.getRadius() + particleTwo.getRadius());
+		Point2D p1 = particleOne.getLocation();
+		Point2D p2 = particleTwo.getLocation();
 
-		double collisionPointY = (particleOne.getLocation().getY() * particleTwo.getRadius())
-				+ (particleTwo.getLocation().getY() * particleOne.getRadius())
-						/ (particleOne.getRadius() + particleTwo.getRadius());
+		Vector2d vec = new Vector2d(p2.getX() - p1.getX(), p2.getY() - p1.getY());
+		vec.normalize();
 
-		Point2D collisionPoint = new Point2D.Double(collisionPointX, collisionPointY);
+		double nx = p1.getX() + (vec.x * particleOne.getRadius());
+		double ny = p1.getY() + (vec.y * particleOne.getRadius());
+		return new Point2D.Double(nx, ny);
+
 	}
 
 	/*
@@ -272,38 +280,38 @@ public class Universe extends Observable {
 	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
 
 		/*
-		 * calculate the unit normal vector, this vector connects the center
-		 * points of both particles. We normalize the vector afterwards to
-		 * prevent strange behavior
+		 * calculate the unit normal vector (also called central vector), this
+		 * vector connects the center points of both particles. We normalize the
+		 * vector afterwards to prevent strange behavior
 		 */
-		Vector2d vectorNormal = new Vector2d(particleTwo.getLocation().getX() - particleOne.getLocation().getX(),
+		Vector2d vectorCentral = new Vector2d(particleTwo.getLocation().getX() - particleOne.getLocation().getX(),
 				particleTwo.getLocation().getY() - particleOne.getLocation().getY());
-		vectorNormal.normalize();
+		vectorCentral.normalize();
 
 		/*
-		 * calculate the orthogonal vector by switching x and y and multiply one
-		 * of these values by -1
+		 * calculate the orthogonal vector (or tangent vector) by switching x
+		 * and y and multiply one of these values by -1
 		 */
-		Vector2d vectorTangent = new Vector2d(-vectorNormal.y, vectorNormal.x);
+		Vector2d vectorTangent = new Vector2d(-vectorCentral.y, vectorCentral.x);
 		vectorTangent.normalize();
 
 		/* TODO */
-		double vectorNormalOne = vectorNormal.dot(particleOne.getVector());
+		double vectorNormalOne = vectorCentral.dot(particleOne.getVector());
 		double vectorTangentOne = vectorTangent.dot(particleOne.getVector());
-		double vectorNormalTwo = vectorNormal.dot(particleTwo.getVector());
-		double v2t = vectorTangent.dot(particleTwo.getVector());
+		double vectorNormalTwo = vectorCentral.dot(particleTwo.getVector());
+		double vectorTangentTwo = vectorTangent.dot(particleTwo.getVector());
 
-		/* TODO */
+		/* TODO umbenennen und kommentieren */
 		double v1nPrime = (vectorNormalOne * (particleOne.getMass() - particleTwo.getMass())
 				+ 2. * particleTwo.getMass() * vectorNormalTwo) / (particleOne.getMass() + particleTwo.getMass());
 		double v2nPrime = (vectorNormalTwo * (particleTwo.getMass() - particleOne.getMass())
 				+ 2. * particleOne.getMass() * vectorNormalOne) / (particleOne.getMass() + particleTwo.getMass());
 
 		/* TODO */
-		Vector2d v_v1nPrime = new Vector2d(vectorNormal.x * v1nPrime, vectorNormal.y * v1nPrime);
+		Vector2d v_v1nPrime = new Vector2d(vectorCentral.x * v1nPrime, vectorCentral.y * v1nPrime);
 		Vector2d v_v1tPrime = new Vector2d(vectorTangent.x * vectorTangentOne, vectorTangent.y * vectorTangentOne);
-		Vector2d v_v2nPrime = new Vector2d(vectorNormal.x * v2nPrime, vectorNormal.y * v2nPrime);
-		Vector2d v_v2tPrime = new Vector2d(vectorTangent.x * v2t, vectorTangent.y * v2t);
+		Vector2d v_v2nPrime = new Vector2d(vectorCentral.x * v2nPrime, vectorCentral.y * v2nPrime);
+		Vector2d v_v2tPrime = new Vector2d(vectorTangent.x * vectorTangentTwo, vectorTangent.y * vectorTangentTwo);
 
 		/* TODO */
 		Vector2d n1 = new Vector2d(v_v1nPrime.x + v_v1tPrime.x, v_v1nPrime.y + v_v1tPrime.y);
@@ -313,6 +321,93 @@ public class Universe extends Observable {
 		particleOne.setVector(n1);
 		particleTwo.setVector(n2);
 
+		bounceCounter++;
+	}
+
+	/*
+	 * if two particles collide under certain circumstances (see
+	 * decideInteraction() for conditions) it is possible that one particle
+	 * splits the other, the splitted particle will always be the bigger one and
+	 * breaks into two smaller one. those smaller particles will move in a 90°
+	 * angle to each other and a 45° angle to the central vector of the two
+	 * collided particles. the splitting particles loses 20% of its speed and
+	 * each of the smaller particles gets 10% of that velocity
+	 */
+	protected void particleSplit(Particle big, Particle fast) {
+
+		/*
+		 * calculate the collision point to detecte where we need to create to
+		 * two smaller particles
+		 */
+		Point2D collisionPoint = detectCollisionPoint(big, fast);
+
+		/* particleOne loses 20% of its velocity after a collision */
+		fast.setVelocity(fast.getVelocity() * 0.8);
+
+		double particleSmallMass = big.getMass() / 2;
+		double particleSmallVelocity = fast.getVelocity() * 0.8;
+
+		double vx = Math.abs(fast.getVector().getX() - big.getVector().getX()) * fast.getVector().x > 0 ? 1d : -1d;
+		double vy = Math.abs(fast.getVector().getY() - big.getVector().getY()) * fast.getVector().y > 0 ? 1d : -1d;
+
+		Vector2d collisionVector = new Vector2d(vx, vy);
+
+		Vector2d escapeOne = rotate(new Vector2d(collisionVector), Math.PI / 4d);
+		escapeOne.normalize();
+		Vector2d escapeTwo = rotate(new Vector2d(collisionVector), -Math.PI / 4d);
+		escapeTwo.normalize();
+
+		particleList.remove(big);
+		double distance = big.getRadius() * 2;
+
+		Vector2d[] vectors = new Vector2d[] { escapeOne, escapeTwo };
+		Particle last = null;
+		for (Vector2d vec : vectors) {
+
+			double nx = collisionPoint.getX() + (vec.x * distance);
+			double ny = collisionPoint.getY() + (vec.y * distance);
+
+			Particle small = createParticle(nx, ny);
+			small.setVector(vec);
+			small.setMass(particleSmallMass);
+			small.setVelocity(particleSmallVelocity);
+			small.setDensity(big.getDensity());
+			if (last == null)
+				last = small;
+			else
+				collisionSet.add(new CollisionFlag(last, small));
+
+			collisionSet.add(new CollisionFlag(fast, small));
+		}
+		System.out.println(particleList.size());
+	}
+
+	/* TODO */
+	protected void particleAbsorption(Particle particleOne, Particle particleTwo) {
+		/* the 11 ensures a random int from 0 to 10 */
+		double random = new Random().nextInt(11);
+		double dx = particleTwo.getLocation().getX() - particleOne.getLocation().getX();
+		double dy = particleTwo.getLocation().getY() - particleOne.getLocation().getY();
+		/* the little shift in position due to the collision */
+		double particleDisplacement = Math.sqrt(dx * dx + dy * dy);
+		double newMass = particleOne.getMass() + particleTwo.getMass();
+		double newDensity = particleOne.getDensity() + particleTwo.getDensity();
+		double newVelocity = particleTwo.getMass() / (particleDisplacement * particleDisplacement);
+
+		/* particle one assmiliates all properties of particle two */
+		particleOne.setMass(newMass);
+		particleOne.setDensity(newDensity);
+		particleOne.setVelocity(newVelocity);
+
+		/* particleTwo gets destroyed */
+		particleList.remove(particleTwo);
+		absorptionCounter++;
+
+		/* in 5% of those cases, both particles are destroyed */
+		if (random <= 0.5) {
+			particleList.remove(particleOne);
+			destructionCounter++;
+		}
 	}
 
 	/* the vector rotates about the angle around a fixed point */
@@ -324,40 +419,6 @@ public class Universe extends Observable {
 		return vector;
 	}
 
-	/* TODO */
-	protected void particleSplit(Particle particleOne, Particle particleTwo) {
-		double dx = particleTwo.getLocation().getX() - particleOne.getLocation().getX();
-		double dy = particleTwo.getLocation().getY() - particleOne.getLocation().getY();
-		double newMass = particleTwo.getMass() / 2;
-		double newVelocityParticleOne = particleOne.getVelocity() * 0.8;
-		double newVelocityParticleSplit = particleOne.getVelocity() * 0.1;
-		/* TODO Particle split */
-
-	}
-
-	/* TODO */
-	protected void particleAbsorption(Particle particleOne, Particle particleTwo) {
-		double random = new Random().nextInt(11);
-		double dx = particleTwo.getLocation().getX() - particleOne.getLocation().getX();
-		double dy = particleTwo.getLocation().getY() - particleOne.getLocation().getY();
-		/* the little shift in position due to the collision */
-		double particleDisplacement = Math.sqrt(dx * dx + dy * dy);
-		double newMass = particleOne.getMass() + particleTwo.getMass();
-		double newDensity = particleOne.getDensity() + particleTwo.getDensity();
-		double newVelocity = particleTwo.getMass() / (particleDisplacement * particleDisplacement);
-
-		particleOne.setMass(newMass);
-		particleOne.setDensity(newDensity);
-		particleOne.setVelocity(newVelocity);
-		/* particleTwo gets destroyed */
-		particleList.remove(particleTwo);
-
-		/* in 5% of those cases, both particles are destroyed */
-		if (random <= 0.5) {
-			particleList.remove(particleOne);
-		}
-	}
-
 	/*
 	 * --- Particle handling ---
 	 */
@@ -365,6 +426,7 @@ public class Universe extends Observable {
 		Particle particle = new Particle(getParticleMass(), getParticleDensity(), x, y);
 		synchronized (particleList) {
 			particleList.add(particle);
+			creationCounter++;
 		}
 		return particle;
 	}
