@@ -23,6 +23,10 @@ public class Controller extends JPanel {
 
 	private static final String CONTINUE_TEXT = "Weiter";
 
+	private static final String START_TEXT = "Start";
+
+	private static final String STARTED_TEXT = "läuft";
+
 	private static final double MAX_MASS = 10000000;
 
 	private static final double MAX_DENSITY = 15;
@@ -31,8 +35,25 @@ public class Controller extends JPanel {
 		initializeButtonControl(this, universe);
 	}
 
-	/* The GUI for the controll panel options will be set here */
+	private static int simulationTime = 1;
+	private static int interval = 1;
+	private static int particlesPerInterval = 1;
+
+	public static int getSimulationTime() {
+		return simulationTime;
+	}
+
+	public static int getInterval() {
+		return interval;
+	}
+
+	public static int getParticlesPerInterval() {
+		return particlesPerInterval;
+	}
+
+	/* The GUI for the control panel options will be set here */
 	protected void initializeButtonControl(JPanel panel, Universe universe) {
+
 		JButton button;
 		JLabel label;
 		JSeparator separator;
@@ -42,12 +63,105 @@ public class Controller extends JPanel {
 		gbc.insets = new Insets(0, 0, 5, 0);
 
 		/*
-		 * --- mass ---
+		 * --- Simulationtime ---
 		 */
 		separator = new JSeparator();
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 0;
 		gbc.gridy = 0;
+		panel.add(separator, gbc);
+
+		label = new JLabel("Zeit [s]: ", (int) CENTER_ALIGNMENT);
+		gbc.gridy++;
+		panel.add(label, gbc);
+
+		JSpinner spinnerTime = new JSpinner(new SpinnerNumberModel(simulationTime, 1, 600, 1));
+		spinnerTime.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Object value = spinnerTime.getValue();
+				if (value instanceof Number)
+					simulationTime = ((Number) value).intValue();
+			}
+		});
+		gbc.gridy++;
+		panel.add(spinnerTime, gbc);
+
+		/*
+		 * --- Intervalspinner ---
+		 */
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
+
+		label = new JLabel("Intervall [s]: ", (int) CENTER_ALIGNMENT);
+		gbc.gridy++;
+		panel.add(label, gbc);
+
+		JSpinner spinnerInterval = new JSpinner(new SpinnerNumberModel(interval, 1, 100, 1));
+		spinnerInterval.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Object value = spinnerInterval.getValue();
+				if (value instanceof Number)
+					interval = ((Number) value).intValue();
+			}
+		});
+		gbc.gridy++;
+		panel.add(spinnerInterval, gbc);
+
+		/*
+		 * --- Partikelspinner ---
+		 */
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
+
+		label = new JLabel("Partikelanzahl: ", (int) CENTER_ALIGNMENT);
+		gbc.gridy++;
+		panel.add(label, gbc);
+
+		JSpinner spinnerParticles = new JSpinner(new SpinnerNumberModel(particlesPerInterval, 1, 10, 1));
+		spinnerParticles.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Object value = spinnerParticles.getValue();
+				if (value instanceof Number)
+					particlesPerInterval = ((Number) value).intValue();
+			}
+		});
+		gbc.gridy++;
+		panel.add(spinnerParticles, gbc);
+
+		/*
+		 * --- Startbutton ---
+		 */
+
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
+
+		final JButton startButton = new JButton(START_TEXT);
+		gbc.gridy++;
+		startButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				universe.startSimulation();
+				startButton.setText(universe.isStartedFlag() ? STARTED_TEXT : START_TEXT);
+			}
+		});
+		panel.add(startButton, gbc);
+
+		/*
+		 * --- Mass ---
+		 */
+		separator = new JSeparator();
+		gbc.gridy++;
 		panel.add(separator, gbc);
 
 		label = new JLabel("Masse: ", (int) CENTER_ALIGNMENT);
@@ -67,7 +181,7 @@ public class Controller extends JPanel {
 		panel.add(spinnerMass, gbc);
 
 		/*
-		 * --- density ---
+		 * --- Density ---
 		 */
 		separator = new JSeparator();
 		gbc.gridy++;
@@ -104,8 +218,8 @@ public class Controller extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				universe.setPauseFlag(!universe.isPauseFlag());
-				pauseButton.setText(universe.isPauseFlag() ? CONTINUE_TEXT : PAUSE_TEXT);
+				universe.setPauseFlag(!universe.isPausedFlag());
+				pauseButton.setText(universe.isPausedFlag() ? CONTINUE_TEXT : PAUSE_TEXT);
 			}
 		});
 		panel.add(pauseButton, gbc);

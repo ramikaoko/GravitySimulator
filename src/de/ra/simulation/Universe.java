@@ -71,6 +71,8 @@ public class Universe extends Observable {
 	 */
 	private static boolean pauseFlag = false;
 
+	private static boolean startFlag = false;
+
 	/* A set of collisionFlags */
 	TreeSet<CollisionFlag> collisionSet = new TreeSet<>();
 
@@ -98,7 +100,7 @@ public class Universe extends Observable {
 		this.windowSize = windowSize;
 	}
 
-	public boolean isPauseFlag() {
+	public boolean isPausedFlag() {
 		return pauseFlag;
 	}
 
@@ -106,72 +108,125 @@ public class Universe extends Observable {
 		Universe.pauseFlag = pauseFlag;
 	}
 
+	public boolean isStartedFlag() {
+		return startFlag;
+	}
+
+	public void setStartFlag(boolean startFlag) {
+		Universe.startFlag = startFlag;
+	}
+
 	/*
 	 * --- Constructor ---
 	 */
 
-	/* TODO */
 	public Universe() {
-		Timer timer = new Timer(false);
+		// TODO Auto-generated constructor stub
+	}
 
-		int period = 15;
-		/*
-		 * timeSteps will determine the calculation speed so it doesn't conflict
-		 * with the time to draw the image, 1000d/4 ≈ 250 steps per cycle
-		 */
-		double timeSteps = 1000d / period;
+	public void startSimulation() {
+		if (!startFlag) {
+
+			startFlag = true;
+
+			randomCreationInterval();
+
+			Timer timer = new Timer(false);
+			int delay = 100;
+			int period = 15;
+			/*
+			 * timeSteps will determine the calculation speed so it doesn't
+			 * conflict with the time to draw the image, 1000d/15 ≈ 66 steps per
+			 * cycle
+			 */
+			double timeSteps = 1000d / period;
+			timer.scheduleAtFixedRate(new TimerTask() {
+
+				@Override
+				public void run() {
+
+					/* check for pause status, continue if its on false */
+					if (isPausedFlag())
+						return;
+
+					List<Particle> particleListCopy = getParticleList();
+
+					/*
+					 * we go through the whole particleList and check the
+					 * movement for each particle, also we check whether the
+					 * particle collided with the border
+					 */
+					for (Particle particle : particleListCopy) {
+						particle.moveParticle(timeSteps);
+						bounceOffBorder(particle);
+					}
+
+					Particle particleOne;
+
+					for (int i = 0; i < particleListCopy.size() - 1; i++) {
+						particleOne = particleListCopy.get(i);
+						for (int j = i + 1; j < particleListCopy.size(); j++) {
+
+							final Particle particleTwo = particleListCopy.get(j);
+							CollisionFlag collisionFlag = new CollisionFlag(particleOne, particleTwo);
+
+							if (collisionSet.contains(collisionFlag)) {
+								if (collisionFlag.stillColliding(Universe.this))
+									continue;
+								collisionSet.remove(collisionFlag);
+							}
+
+							if (checkForCollision(particleOne, particleTwo)) {
+								decideInteraction(particleOne, particleTwo);
+								collisionSet.add(collisionFlag);
+								collisionCounter++;
+							}
+						}
+					}
+
+					setChanged();
+					notifyObservers();
+				}
+			}, delay, period);
+		}
+	}
+
+	protected void randomCreationInterval() {
+		Timer timer = new Timer(false);
+		/* multiplie by 1000 to get the time in seconds */
+		int simulationTime = Controller.getSimulationTime() * 1000;
+		int period = Controller.getInterval() * 1000;
+		int particlePerInterval = Controller.getParticlesPerInterval();
+		int delay = period;
 		timer.scheduleAtFixedRate(new TimerTask() {
 
 			@Override
 			public void run() {
 
-				/* check for pause status, continue if its on false */
-				if (isPauseFlag())
-					return;
-
-				List<Particle> particleListCopy = getParticleList();
-
 				/*
-				 * we go through the whole particleList and check the movement
-				 * for each particle, also we check whether the particle
-				 * collided with the border
+				 * Create a random number between 10 and 990 for the x and y
+				 * coordinates, the window is 1000*1000 but we dont want the
+				 * particles to be created in the corners
 				 */
-				for (Particle particle : particleListCopy) {
-					particle.moveParticle(timeSteps);
-					bounceOffBorder(particle);
-				}
+				int minX = 10;
+				int minY = 10;
+				int maxX = windowSize.width - 25;
+				int maxY = windowSize.height - 25;
+				int randomX = new Random().nextInt(((maxX - minX) + 1) + minX);
+				int randomY = new Random().nextInt(((maxY - minY) + 1) + minY);
+				int randomVelocity = new Random().nextInt(((100) + 1) + 50);
+				/* TODO the x and y values of the vector are always positive */
+				Vector2d randomVector = new Vector2d(randomX, randomY);
+				randomVector.normalize();
 
-				/* TODO */
-				Particle particleOne;
+				Particle particleRandom = createParticle(randomX, randomY);
+				particleRandom.setMass(particleMass);
+				particleRandom.setDensity(particleDensity);
+				particleRandom.setVelocity(randomVelocity);
+				particleRandom.setVector(randomVector);
 
-				/* TODO */
-				for (int i = 0; i < particleListCopy.size() - 1; i++) {
-					particleOne = particleListCopy.get(i);
-					for (int j = i + 1; j < particleListCopy.size(); j++) {
-
-						/* TODO */
-						final Particle particleTwo = particleListCopy.get(j);
-
-						CollisionFlag collisionFlag = new CollisionFlag(particleOne, particleTwo);
-
-						if (collisionSet.contains(collisionFlag)) {
-							if (collisionFlag.stillColliding(Universe.this))
-								continue;
-							collisionSet.remove(collisionFlag);
-						}
-
-						if (checkForCollision(particleOne, particleTwo)) {
-							decideInteraction(particleOne, particleTwo);
-							collisionSet.add(collisionFlag);
-							collisionCounter++;
-						}
-					}
-				}
-
-				setChanged();
-				notifyObservers();
 			}
-		}, 100, period);
+		}, delay, period);
 	}
 
 	/*
@@ -217,7 +272,10 @@ public class Universe extends Observable {
 		return false;
 	}
 
-	/* TODO */
+	/*
+	 * This method decides wheter a particle splits another particle, bounces
+	 * off or gets absorbed
+	 */
 	protected void decideInteraction(Particle particleOne, Particle particleTwo) {
 		/* The 11 ensures a random int from 0 to 10 */
 		int random = new Random().nextInt(11);
@@ -233,9 +291,9 @@ public class Universe extends Observable {
 			System.out.println("Reaction: split");
 			splitCounter++;
 			if (sizeDifference > 1)
-				particleSplit(particleOne, particleTwo);
+				splitParticle(particleOne, particleTwo);
 			else
-				particleSplit(particleTwo, particleOne);
+				splitParticle(particleTwo, particleOne);
 
 		} else if (random <= 2)
 
@@ -295,7 +353,11 @@ public class Universe extends Observable {
 		Vector2d vectorTangent = new Vector2d(-vectorCentral.y, vectorCentral.x);
 		vectorTangent.normalize();
 
-		/* TODO */
+		/*
+		 * compute the dot product of the central and tangent vectors with the
+		 * vectors of particleOne and particleTwo to get the directions in which
+		 * the particles should bounce off after a collision
+		 */
 		double vectorNormalOne = vectorCentral.dot(particleOne.getVector());
 		double vectorTangentOne = vectorTangent.dot(particleOne.getVector());
 		double vectorNormalTwo = vectorCentral.dot(particleTwo.getVector());
@@ -314,14 +376,8 @@ public class Universe extends Observable {
 		Vector2d v_v2tPrime = new Vector2d(vectorTangent.x * vectorTangentTwo, vectorTangent.y * vectorTangentTwo);
 
 		/* TODO */
-		Vector2d n1 = new Vector2d(v_v1nPrime.x + v_v1tPrime.x, v_v1nPrime.y + v_v1tPrime.y);
-		Vector2d n2 = new Vector2d(v_v2nPrime.x + v_v2tPrime.x, v_v2nPrime.y + v_v2tPrime.y);
-
-		/* TODO */
-		particleOne.setVector(n1);
-		particleTwo.setVector(n2);
-
-		bounceCounter++;
+		particleOne.setVector(new Vector2d(v_v1nPrime.x + v_v1tPrime.x, v_v1nPrime.y + v_v1tPrime.y));
+		particleTwo.setVector(new Vector2d(v_v2nPrime.x + v_v2tPrime.x, v_v2nPrime.y + v_v2tPrime.y));
 	}
 
 	/*
@@ -333,7 +389,7 @@ public class Universe extends Observable {
 	 * collided particles. the splitting particles loses 20% of its speed and
 	 * each of the smaller particles gets 10% of that velocity
 	 */
-	protected void particleSplit(Particle big, Particle fast) {
+	protected void splitParticle(Particle big, Particle fast) {
 
 		/*
 		 * calculate the collision point to detecte where we need to create to
@@ -352,9 +408,9 @@ public class Universe extends Observable {
 
 		Vector2d collisionVector = new Vector2d(vx, vy);
 
-		Vector2d escapeOne = rotate(new Vector2d(collisionVector), Math.PI / 4d);
+		Vector2d escapeOne = rotateVector(new Vector2d(collisionVector), Math.PI / 4d);
 		escapeOne.normalize();
-		Vector2d escapeTwo = rotate(new Vector2d(collisionVector), -Math.PI / 4d);
+		Vector2d escapeTwo = rotateVector(new Vector2d(collisionVector), -Math.PI / 4d);
 		escapeTwo.normalize();
 
 		particleList.remove(big);
@@ -382,7 +438,10 @@ public class Universe extends Observable {
 		System.out.println(particleList.size());
 	}
 
-	/* TODO */
+	/*
+	 * This method calculates the absorption process of two particles, sometimes
+	 * both particles are destroyed
+	 */
 	protected void particleAbsorption(Particle particleOne, Particle particleTwo) {
 		/* the 11 ensures a random int from 0 to 10 */
 		double random = new Random().nextInt(11);
@@ -391,7 +450,7 @@ public class Universe extends Observable {
 		/* the little shift in position due to the collision */
 		double particleDisplacement = Math.sqrt(dx * dx + dy * dy);
 		double newMass = particleOne.getMass() + particleTwo.getMass();
-		double newDensity = particleOne.getDensity() + particleTwo.getDensity();
+		double newDensity = (particleOne.getDensity() + particleTwo.getDensity()) / 2;
 		double newVelocity = particleTwo.getMass() / (particleDisplacement * particleDisplacement);
 
 		/* particle one assmiliates all properties of particle two */
@@ -401,17 +460,17 @@ public class Universe extends Observable {
 
 		/* particleTwo gets destroyed */
 		particleList.remove(particleTwo);
-		absorptionCounter++;
 
-		/* in 5% of those cases, both particles are destroyed */
-		if (random <= 0.5) {
+		/* in 10% of those cases, both particles are destroyed */
+		if (random <= 1) {
 			particleList.remove(particleOne);
+			System.out.println("Reaction: destruction");
 			destructionCounter++;
 		}
 	}
 
 	/* the vector rotates about the angle around a fixed point */
-	protected Vector2d rotate(Vector2d vector, double theta) {
+	protected Vector2d rotateVector(Vector2d vector, double theta) {
 		Point2D point = new Point2D.Double(vector.x, vector.y);
 		AffineTransform.getRotateInstance(theta, 0, 0).transform(point, point);
 		vector.x = point.getX();

@@ -22,16 +22,14 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
  * ! Problem bei Kollision: Partikel überlappen sich manchmal
  * - Überlappung bei Partikelerzeugung verhindern (Radiusversatz in Vektorrichtung?)
  * - Option: Vektoren für jeden Partikel einzeichnen
- * - zufällige Geschwindigkeit zw Grenzwerten implementieren und per GUI einstellbar machen
- * - Partikelspaltung implementieren
  * - Button: Auswertung
  * - Auswertungsfenster mit Zahlenwerten und Diagram
- * - Kollisionen/s, Spaltugen/s [pro Sekunde, Minute, Stunde]
- * - Gravitation implementieren
+ * - Kollisionen/s, Spaltugen/s
  * - konsistente Namensgebung
  * - Codeleichen löschen, Kommentare prüfen
  * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
- * - JSpinner in Controller in 1^10er Schritten steigen lassen
+ * ? JSpinner in Controller in 1^10er Schritten steigen lassen
+ * ? Gravitation implementieren
  */
 
 @SuppressWarnings("serial")

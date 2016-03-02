@@ -19,26 +19,31 @@ import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
-/* TODO */
+/*
+ * In DrawPane all drawings are processed, we use a doubleBuffer to evade
+ * graphical stuttering, therefore a picture is drawn and set to the front
+ * while a new picture is drawn in the back and set to the front after a
+ * certain time: 
+ * The Observer gets notified of every change which happens in the universe and acts accordingly
+ */
 @SuppressWarnings("serial")
 public class DrawPane extends JPanel implements Observer {
 
-	/* TODO */
 	Universe universe;
 
-	/* TODO */
 	BufferedImage front;
 	BufferedImage back;
 
-	/* TODO */
+	/* if the front image the currently shown image? -> true */
 	boolean drawFront = true;
 
-	/* TODO */
+	/*
+	 * If the observer gets a notification the picture is repainted, therefore
+	 * the particles move with a period of 16ms
+	 */
 	public DrawPane(Universe universe) {
 		int period = 16;
-
 		this.universe = universe;
-
 		universe.addObserver(this);
 		setDoubleBuffered(true);
 
@@ -74,12 +79,12 @@ public class DrawPane extends JPanel implements Observer {
 			else
 				buffer = back;
 		}
-		/* TODO Is this still necessary? */
+		/* activate rendering for the buffered images */
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 		g2d.drawRenderedImage(buffer, AffineTransform.getTranslateInstance(0, 0));
 	}
 
-	/* create two bufferImages on which the picture is drawed */
+	/* create two bufferImages on which the picture is drawn */
 	private synchronized void createBuffers() {
 		front = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 		back = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
