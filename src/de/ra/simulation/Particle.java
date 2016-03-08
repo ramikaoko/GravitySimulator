@@ -43,8 +43,8 @@ public class Particle {
 	private int velocityMultiplier;
 
 	/*
-	 * if the value for velocity becomes to big the particles cant be drawn fast
-	 * enough, so we define a limit of 150
+	 * if the value for velocity becomes to big, the particles can't be drawn
+	 * fast enough, therefore we define a limit of 150
 	 */
 	private static final double MAX_VELOCITY = 150;
 
@@ -136,10 +136,10 @@ public class Particle {
 	}
 
 	/*
-	 * Create a random number between 1 and 5 which will be used in the vector
+	 * Create a random number between 1 and 3 which will be used in the vector
 	 * calculation to manipulate the particle velocity. This has to be done to
 	 * meet the requirements of this project, which are at least one random
-	 * parameter which can't be chosen by the user
+	 * parameter which can't be ontrolled by the user
 	 */
 	protected void calculateRandomVelocityMultiplier() {
 		int random = new Random().nextInt(3) + 1;

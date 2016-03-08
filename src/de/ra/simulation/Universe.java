@@ -121,7 +121,7 @@ public class Universe extends Observable {
 	 */
 
 	public Universe() {
-		// TODO Auto-generated constructor stub
+		// Auto-generated constructor stub
 	}
 
 	public void startSimulation() {
@@ -200,16 +200,22 @@ public class Universe extends Observable {
 		int delay = period;
 		timer.scheduleAtFixedRate(new TimerTask() {
 
+			/*
+			 * TODO: Pause Button wirkt hier noch nicht, trotz Pause wird weiter
+			 * gezeichnet
+			 */
+
 			@Override
 			public void run() {
 
 				/*
-				 * Create a random number between 10 and 990 for the x and y
-				 * coordinates, the window is 1000*1000 but we dont want the
-				 * particles to be created in the corners
+				 * Create a random number between 25 and maxWidth/maxHeight for
+				 * the x and y coordinates, the actual size of the window can
+				 * change and we don't want the particles to be created in the
+				 * corners or near the edges.
 				 */
-				int minX = 10;
-				int minY = 10;
+				int minX = 25;
+				int minY = 25;
 				int maxX = windowSize.width - 25;
 				int maxY = windowSize.height - 25;
 				int randomX = new Random().nextInt(((maxX - minX) + 1) + minX);
@@ -295,17 +301,17 @@ public class Universe extends Observable {
 			else
 				splitParticle(particleTwo, particleOne);
 
-		} else if (random <= 2)
+		} else if (random <= 1)
 
 		{
-			particleAbsorption(particleOne, particleTwo);
 			System.out.println("Reaction: absorption");
+			particleAbsorption(particleOne, particleTwo);
 			absorptionCounter++;
-		} else if (random > 2)
+		} else if (random > 1)
 
 		{
-			elasticTwoDimensionalCollision(particleOne, particleTwo);
 			System.out.println("Reaction: bounce");
+			elasticTwoDimensionalCollision(particleOne, particleTwo);
 			bounceCounter++;
 		}
 
@@ -338,46 +344,93 @@ public class Universe extends Observable {
 	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
 
 		/*
+		 * TODO: resultierende Geschwindigkeit scheint zu klein zu sein, daher
+		 * resultiert vermutlich die Verklumpung der Partikel!
+		 */
+
+		/*
 		 * calculate the unit normal vector (also called central vector), this
 		 * vector connects the center points of both particles. We normalize the
 		 * vector afterwards to prevent strange behavior
 		 */
 		Vector2d vectorCentral = new Vector2d(particleTwo.getLocation().getX() - particleOne.getLocation().getX(),
 				particleTwo.getLocation().getY() - particleOne.getLocation().getY());
-		vectorCentral.normalize();
+				// vectorCentral.normalize();
 
 		/*
-		 * calculate the orthogonal vector (or tangent vector) by switching x
-		 * and y and multiply one of these values by -1
+		 * calculate the orthogonal vector (also called tangent vector) by
+		 * switching x and y of the central vector and multiply one of these
+		 * values by -1
 		 */
 		Vector2d vectorTangent = new Vector2d(-vectorCentral.y, vectorCentral.x);
-		vectorTangent.normalize();
+		// vectorTangent.normalize();
 
 		/*
-		 * compute the dot product of the central and tangent vectors with the
-		 * vectors of particleOne and particleTwo to get the directions in which
-		 * the particles should bounce off after a collision
+		 * compute the dot product or scalar product of the central and tangent
+		 * vectors with the vectors of particleOne and particleTwo. These values
+		 * are used to determine the velocity with which the particles will
+		 * travel after the collision
 		 */
-		double vectorNormalOne = vectorCentral.dot(particleOne.getVector());
+		double vectorCentralOne = vectorCentral.dot(particleOne.getVector());
 		double vectorTangentOne = vectorTangent.dot(particleOne.getVector());
-		double vectorNormalTwo = vectorCentral.dot(particleTwo.getVector());
+		double vectorCentralTwo = vectorCentral.dot(particleTwo.getVector());
 		double vectorTangentTwo = vectorTangent.dot(particleTwo.getVector());
 
-		/* TODO umbenennen und kommentieren */
-		double v1nPrime = (vectorNormalOne * (particleOne.getMass() - particleTwo.getMass())
-				+ 2. * particleTwo.getMass() * vectorNormalTwo) / (particleOne.getMass() + particleTwo.getMass());
-		double v2nPrime = (vectorNormalTwo * (particleTwo.getMass() - particleOne.getMass())
-				+ 2. * particleOne.getMass() * vectorNormalOne) / (particleOne.getMass() + particleTwo.getMass());
+		/*
+		 * calculate the new central velocity using the formula for an
+		 * one-dimensional elastic collision. The mass will be included to get a
+		 * physically correct solution. The tangential velocity doesn't change
+		 * after the collision so we don't need to make another calculation and
+		 * can use the dot product vectorTangentOne and Two for further
+		 * calculations
+		 */
+		double newVelocityVectorCentralOne = (vectorCentralOne * (particleOne.getMass() - particleTwo.getMass())
+				+ 2d * particleTwo.getMass() * vectorCentralTwo) / (particleOne.getMass() + particleTwo.getMass());
+		double newVelocityVectorCentralTwo = (vectorCentralTwo * (particleTwo.getMass() - particleOne.getMass())
+				+ 2d * particleOne.getMass() * vectorCentralOne) / (particleOne.getMass() + particleTwo.getMass());
 
-		/* TODO */
-		Vector2d v_v1nPrime = new Vector2d(vectorCentral.x * v1nPrime, vectorCentral.y * v1nPrime);
-		Vector2d v_v1tPrime = new Vector2d(vectorTangent.x * vectorTangentOne, vectorTangent.y * vectorTangentOne);
-		Vector2d v_v2nPrime = new Vector2d(vectorCentral.x * v2nPrime, vectorCentral.y * v2nPrime);
-		Vector2d v_v2tPrime = new Vector2d(vectorTangent.x * vectorTangentTwo, vectorTangent.y * vectorTangentTwo);
+		/*
+		 * multiply the vectors centralOne/Two and tangentOne/Two with the
+		 * values of the calculated velocities
+		 */
+		Vector2d vectorCentralOneWithVelocity = new Vector2d(vectorCentral.x * newVelocityVectorCentralOne,
+				vectorCentral.y * newVelocityVectorCentralOne);
+		Vector2d vectorTangentOneWithVelocity = new Vector2d(vectorTangent.x * vectorTangentOne,
+				vectorTangent.y * vectorTangentOne);
+		Vector2d vectorCentralTwoWithVelocity = new Vector2d(vectorCentral.x * newVelocityVectorCentralTwo,
+				vectorCentral.y * newVelocityVectorCentralTwo);
+		Vector2d vectorTangentTwoWithVelocity = new Vector2d(vectorTangent.x * vectorTangentTwo,
+				vectorTangent.y * vectorTangentTwo);
 
-		/* TODO */
-		particleOne.setVector(new Vector2d(v_v1nPrime.x + v_v1tPrime.x, v_v1nPrime.y + v_v1tPrime.y));
-		particleTwo.setVector(new Vector2d(v_v2nPrime.x + v_v2tPrime.x, v_v2nPrime.y + v_v2tPrime.y));
+		/*
+		 * calculate the actual vectors for particleOne and Two and therefore
+		 * get the direction in which the particles bounce off after the
+		 * collision.
+		 */
+		Vector2d finalVectorOne = new Vector2d(vectorCentralOneWithVelocity.x + vectorTangentOneWithVelocity.x,
+				vectorCentralOneWithVelocity.y + vectorTangentOneWithVelocity.y);
+		Vector2d finalVectorTwo = new Vector2d(vectorCentralTwoWithVelocity.x + vectorTangentTwoWithVelocity.x,
+				vectorCentralTwoWithVelocity.y + vectorTangentTwoWithVelocity.y);
+
+		/*
+		 * extract the velocity from the final vectors, otherwise they'll be
+		 * lost due to the normalize() method in Particle.setVector()
+		 */
+		double finalVelocityOne = finalVectorOne.length();
+		double finalVelocityTwo = finalVectorTwo.length();
+
+		/* set the vector for both particles */
+		particleOne.setVector(finalVectorOne);
+		System.out.println("finalVectorOne: " + finalVectorOne);
+		particleTwo.setVector(finalVectorTwo);
+		System.out.println("finalVectorTwo: " + finalVectorTwo);
+
+		/* set the velocity for both particles */
+		particleOne.setVelocity(finalVelocityOne);
+		System.out.println("finalVelocityOne: " + finalVelocityOne);
+		particleTwo.setVelocity(finalVelocityTwo);
+		System.out.println("finalVelocityTwo: " + finalVelocityTwo);
+
 	}
 
 	/*
@@ -386,7 +439,7 @@ public class Universe extends Observable {
 	 * splits the other, the splitted particle will always be the bigger one and
 	 * breaks into two smaller one. those smaller particles will move in a 90°
 	 * angle to each other and a 45° angle to the central vector of the two
-	 * collided particles. the splitting particles loses 20% of its speed and
+	 * collided particles. The splitting particle loses 20% of its speed and
 	 * each of the smaller particles gets 10% of that velocity
 	 */
 	protected void splitParticle(Particle big, Particle fast) {
@@ -400,14 +453,26 @@ public class Universe extends Observable {
 		/* particleOne loses 20% of its velocity after a collision */
 		fast.setVelocity(fast.getVelocity() * 0.8);
 
+		/*
+		 * TODO Geschwindigkeitsrechnung scheint unsinnig, erst Verlust dann
+		 * erhalten die neuen Partikel einen Teil des Restwertes...
+		 */
 		double particleSmallMass = big.getMass() / 2;
 		double particleSmallVelocity = fast.getVelocity() * 0.8;
 
-		double vx = Math.abs(fast.getVector().getX() - big.getVector().getX()) * fast.getVector().x > 0 ? 1d : -1d;
-		double vy = Math.abs(fast.getVector().getY() - big.getVector().getY()) * fast.getVector().y > 0 ? 1d : -1d;
+		/* TODO */
+		double velocityX = Math.abs(fast.getVector().getX() - big.getVector().getX()) * fast.getVector().x > 0 ? 1d
+				: -1d;
+		double velocityY = Math.abs(fast.getVector().getY() - big.getVector().getY()) * fast.getVector().y > 0 ? 1d
+				: -1d;
 
-		Vector2d collisionVector = new Vector2d(vx, vy);
+		Vector2d collisionVector = new Vector2d(velocityX, velocityY);
+		/* TODO normalize() ?? */
 
+		/*
+		 * create the new vector by rotating the collision vector about 45° with
+		 * and angainst its current direction
+		 */
 		Vector2d escapeOne = rotateVector(new Vector2d(collisionVector), Math.PI / 4d);
 		escapeOne.normalize();
 		Vector2d escapeTwo = rotateVector(new Vector2d(collisionVector), -Math.PI / 4d);
@@ -416,31 +481,34 @@ public class Universe extends Observable {
 		particleList.remove(big);
 		double distance = big.getRadius() * 2;
 
+		/* TODO */
 		Vector2d[] vectors = new Vector2d[] { escapeOne, escapeTwo };
 		Particle last = null;
-		for (Vector2d vec : vectors) {
+		for (Vector2d vector : vectors) {
 
-			double nx = collisionPoint.getX() + (vec.x * distance);
-			double ny = collisionPoint.getY() + (vec.y * distance);
+			double newX = collisionPoint.getX() + (vector.x * distance);
+			double newY = collisionPoint.getY() + (vector.y * distance);
 
-			Particle small = createParticle(nx, ny);
-			small.setVector(vec);
-			small.setMass(particleSmallMass);
-			small.setVelocity(particleSmallVelocity);
-			small.setDensity(big.getDensity());
+			Particle particleSmall = createParticle(newX, newY);
+			particleSmall.setVector(vector);
+			particleSmall.setMass(particleSmallMass);
+			particleSmall.setVelocity(particleSmallVelocity);
+			particleSmall.setDensity(big.getDensity());
 			if (last == null)
-				last = small;
+				last = particleSmall;
 			else
-				collisionSet.add(new CollisionFlag(last, small));
+				collisionSet.add(new CollisionFlag(last, particleSmall));
 
-			collisionSet.add(new CollisionFlag(fast, small));
+			collisionSet.add(new CollisionFlag(fast, particleSmall));
 		}
+		/* TODO: wofür das sysout? */
 		System.out.println(particleList.size());
 	}
 
 	/*
 	 * This method calculates the absorption process of two particles, sometimes
-	 * both particles are destroyed
+	 * (more precisely in 10% of all absorption cases) both particles are
+	 * destroyed
 	 */
 	protected void particleAbsorption(Particle particleOne, Particle particleTwo) {
 		/* the 11 ensures a random int from 0 to 10 */
@@ -461,7 +529,10 @@ public class Universe extends Observable {
 		/* particleTwo gets destroyed */
 		particleList.remove(particleTwo);
 
-		/* in 10% of those cases, both particles are destroyed */
+		/*
+		 * in 10% of those cases (and therefore in every 100th collision), both
+		 * particles are destroyed
+		 */
 		if (random <= 1) {
 			particleList.remove(particleOne);
 			System.out.println("Reaction: destruction");
