@@ -51,19 +51,25 @@ public class Universe extends Observable {
 	 */
 	private double particleDensity = 1d;
 
-	/* A bunch of counter to analyse whats happening in the simulation */
-	private int creationCounter = 0;
-	private int collisionCounter = 0;
-	private int destructionCounter = 0;
-	private int bounceCounter = 0;
-	private int absorptionCounter = 0;
-	private int splitCounter = 0;
+	/*
+	 * These values are used to analyse whats happening in the simulation and to
+	 * show these results in the dialog
+	 */
+	protected int collisionCounter = 0;
+
+	protected int destructionCounter = 0;
+
+	protected int bounceCounter = 0;
+
+	protected int absorptionCounter = 0;
+
+	protected int splitCounter = 0;
 
 	/*
 	 * the size of the contentPane, it's used for collision detection with the
 	 * borders of our panel
 	 */
-	private Dimension windowSize;
+	protected Dimension windowSize;
 
 	/*
 	 * This flag indicates whether the simulation is on halt or not, it is set
@@ -71,10 +77,35 @@ public class Universe extends Observable {
 	 */
 	private static boolean pauseFlag = false;
 
+	/* TODO */
 	private static boolean startFlag = false;
 
 	/* A set of collisionFlags */
 	TreeSet<CollisionFlag> collisionSet = new TreeSet<>();
+
+	/* TODO */
+	protected Timer timer = null;
+
+	/* TODO */
+	private static final int DELAY = 100;
+
+	/* TODO */
+	protected long simulationTimeInSeconds = 10;
+
+	/* TODO */
+	protected long remainingTime = 0;
+
+	/* TODO */
+	protected int interval = 1;
+
+	/* TODO */
+	protected int particlesPerInterval = 1;
+
+	/* TODO */
+	public static final String SIMULATION_FINISHED = "SimulationFinished";
+
+	/* TODO */
+	private final LinkedList<int[]> results = new LinkedList<>();
 
 	/*
 	 * --- getter and setter ---
@@ -116,6 +147,43 @@ public class Universe extends Observable {
 		Universe.startFlag = startFlag;
 	}
 
+	public long getSimulationTime() {
+		return simulationTimeInSeconds;
+	}
+
+	public void setSimulationTime(long simulationTime) {
+		this.simulationTimeInSeconds = simulationTime;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public int getParticlesPerInterval() {
+		return particlesPerInterval;
+	}
+
+	public void setParticlesPerInterval(int particlesPerInterval) {
+		this.particlesPerInterval = particlesPerInterval;
+	}
+
+	public long getRemainingTime() {
+		return remainingTime;
+	}
+
+	public LinkedList<int[]> getResults() {
+		return results;
+	}
+
+	public String[] getNames() {
+		return new String[] { "Anzahl Partikel", "Kollisionen", "Abstoßungen", "Absorptionen", "Auflösungen",
+				"Spaltungen" };
+	}
+
 	/*
 	 * --- Constructor ---
 	 */
@@ -127,101 +195,120 @@ public class Universe extends Observable {
 	public void startSimulation() {
 		if (!startFlag) {
 
+			timer = new Timer();
+			results.clear();
 			startFlag = true;
+			final int period = 15;
 
-			randomCreationInterval();
+			TimerTask simulationTask = createSimulationTask();
+			TimerTask intervalTask = createRandomParticlePerIntervalTask();
+			TimerTask evaluationTask = createEvaluationTask();
 
-			Timer timer = new Timer(false);
-			int delay = 100;
-			int period = 15;
-			/*
-			 * timeSteps will determine the calculation speed so it doesn't
-			 * conflict with the time to draw the image, 1000d/15 ≈ 66 steps per
-			 * cycle
-			 */
-			double timeSteps = 1000d / period;
-			timer.scheduleAtFixedRate(new TimerTask() {
+			remainingTime = (simulationTimeInSeconds * 1000) - DELAY;
 
-				@Override
-				public void run() {
+			timer.scheduleAtFixedRate(simulationTask, DELAY, period);
+			timer.scheduleAtFixedRate(evaluationTask, DELAY, 1000);
+			timer.scheduleAtFixedRate(intervalTask, DELAY, interval * 1000);
 
-					/* check for pause status, continue if its on false */
-					if (isPausedFlag())
-						return;
-
-					List<Particle> particleListCopy = getParticleList();
-
-					/*
-					 * we go through the whole particleList and check the
-					 * movement for each particle, also we check whether the
-					 * particle collided with the border
-					 */
-					for (Particle particle : particleListCopy) {
-						particle.moveParticle(timeSteps);
-						bounceOffBorder(particle);
-					}
-
-					Particle particleOne;
-
-					for (int i = 0; i < particleListCopy.size() - 1; i++) {
-						particleOne = particleListCopy.get(i);
-						for (int j = i + 1; j < particleListCopy.size(); j++) {
-
-							final Particle particleTwo = particleListCopy.get(j);
-							CollisionFlag collisionFlag = new CollisionFlag(particleOne, particleTwo);
-
-							if (collisionSet.contains(collisionFlag)) {
-								if (collisionFlag.stillColliding(Universe.this))
-									continue;
-								collisionSet.remove(collisionFlag);
-							}
-
-							if (checkForCollision(particleOne, particleTwo)) {
-								decideInteraction(particleOne, particleTwo);
-								collisionSet.add(collisionFlag);
-								collisionCounter++;
-							}
-						}
-					}
-
-					setChanged();
-					notifyObservers();
-				}
-			}, delay, period);
 		}
 	}
 
-	protected void randomCreationInterval() {
-		Timer timer = new Timer(false);
-		/*
-		 * The time after which the simulation ends. Multiply by 1000 to get the
-		 * time in seconds
-		 */
-		int simulationTime = Controller.getSimulationTime() * 1000;
-		/*  */
-		final long endTime = System.currentTimeMillis() + simulationTime;
-		/* this value indicates the period */
-		int period = Controller.getInterval() * 1000;
-		/* this is number of particles created during this period of time */
-		int particlePerInterval = Controller.getParticlesPerInterval();
-		int delay = period;
-		timer.scheduleAtFixedRate(new TimerTask() {
+	private TimerTask createSimulationTask() {
 
-			/*
-			 * TODO:
-			 * 
-			 * 1. Pause Button wirkt hier noch nicht, trotz Pause wird weiter
-			 * gezeichnet
-			 * 
-			 * 2. erschaffung der Partikel im oberen und linken rand, rand darf
-			 * nicht berührt werden
-			 */
+		final int period = 15;
+		/*
+		 * timeSteps will determine the calculation speed so it doesn't conflict
+		 * with the time to draw the image, 1000d/15 ≈ 66 steps per cycle
+		 */
+		double timeSteps = 1000d / period;
+
+		final TimerTask task = new TimerTask() {
 
 			@Override
 			public void run() {
+				/* check for pause status, continue if its on false */
+				if (isPausedFlag())
+					return;
 
-				if (System.currentTimeMillis() >= endTime)
-					timer.cancel();
+				remainingTime -= period;
+
+				List<Particle> particleListCopy = getParticleList();
+
+				/*
+				 * we go through the whole particleList and check the movement
+				 * for each particle, also we check whether the particle
+				 * collided with the border
+				 */
+				for (Particle particle : particleListCopy) {
+					particle.moveParticle(timeSteps);
+					bounceOffBorder(particle);
+				}
+
+				Particle particleOne;
+
+				for (int i = 0; i < particleListCopy.size() - 1; i++) {
+					particleOne = particleListCopy.get(i);
+					for (int j = i + 1; j < particleListCopy.size(); j++) {
+
+						final Particle particleTwo = particleListCopy.get(j);
+						CollisionFlag collisionFlag = new CollisionFlag(particleOne, particleTwo);
+
+						if (collisionSet.contains(collisionFlag)) {
+							if (collisionFlag.stillColliding(Universe.this))
+								continue;
+							collisionSet.remove(collisionFlag);
+						}
+
+						if (checkForCollision(particleOne, particleTwo)) {
+							decideInteraction(particleOne, particleTwo);
+							collisionSet.add(collisionFlag);
+							collisionCounter++;
+						}
+					}
+				}
+
+				if (remainingTime < period)
+					stopSimulation();
+
+				setChanged();
+				notifyObservers();
+			}
+		};
+		return task;
+	}
+
+	private TimerTask createEvaluationTask() {
+		final TimerTask task = new TimerTask() {
+
+			@Override
+			public void run() {
+				int[] array = new int[6];
+				/* number of particles */
+				array[0] = particleList.size();
+				results.add(array);
+				array[1] = collisionCounter;
+				collisionCounter = 0;
+				array[2] = bounceCounter;
+				bounceCounter = 0;
+				array[3] = absorptionCounter;
+				absorptionCounter = 0;
+				array[4] = destructionCounter;
+				destructionCounter = 0;
+				array[5] = splitCounter;
+				splitCounter = 0;
+			}
+		};
+		return task;
+	}
+
+	protected TimerTask createRandomParticlePerIntervalTask() {
+
+		final TimerTask task = new TimerTask() {
+
+			@Override
+			public void run() {
+				if (isPausedFlag())
+					return;
 
 				/*
 				 * Create a random number between 17 and maxWidth/maxHeight-17
@@ -233,30 +320,55 @@ public class Universe extends Observable {
 				 * start.width = 842, start.height = 962
 				 */
 
-				int minX = 17;
-				int minY = 17;
-				int maxX = windowSize.width - 17;
-				int maxY = windowSize.height - 17;
-				Random random = new Random();
-				int randomX = random.nextInt((maxX - minX) + 1) + minX;
-				int randomY = random.nextInt((maxY - minY) + 1) + minY;
-				int randomVelocity = random.nextInt((100) + 1) + 50;
-				double vectorX = random.nextDouble() * (random.nextBoolean() ? 1d : -1d);
-				double vectorY = random.nextDouble() * (random.nextBoolean() ? 1d : -1d);
-				Vector2d randomVector = new Vector2d(vectorX, vectorY);
+				for (int i = 0; i < particlesPerInterval; i++) {
+					int minX = 17;
+					int minY = 17;
+					int maxX = windowSize.width - 17;
+					int maxY = windowSize.height - 17;
+					Random random = new Random();
 
-				Particle particleRandom = createParticle(randomX, randomY);
-				particleRandom.setMass(particleMass);
-				particleRandom.setDensity(particleDensity);
-				particleRandom.setVelocity(randomVelocity);
-				particleRandom.setVector(randomVector);
+					/* random position within the contentPane */
+					int randomX = random.nextInt((maxX - minX) + 1) + minX;
+					int randomY = random.nextInt((maxY - minY) + 1) + minY;
 
+					/* random mass between 100k and 1M */
+					double randomMass = random.nextInt((1000000 - 100000) + 1) + 100000;
+
+					/* random density between 1 and 5 */
+					double randomDensity = random.nextInt((5 - 1) + 1) + 1;
+
+					/* random velocity between 50 and 150 */
+					int randomVelocity = random.nextInt((150 - 50) + 1) + 50;
+
+					/* random vector for the direction */
+					double vectorX = random.nextDouble() * (random.nextBoolean() ? 1d : -1d);
+					double vectorY = random.nextDouble() * (random.nextBoolean() ? 1d : -1d);
+					Vector2d randomVector = new Vector2d(vectorX, vectorY);
+
+					/* create a particle with the calculated values */
+					/* TODO: nach Erschaffung neurechnung des radius! */
+					Particle particleRandom = createParticle(randomX, randomY);
+					particleRandom.setMass(randomMass);
+					particleRandom.setDensity(randomDensity);
+					particleRandom.setVelocity(randomVelocity);
+					particleRandom.setVector(randomVector);
+				}
 			}
-		}, delay, period);
+		};
+		return task;
+	}
+
+	protected void stopSimulation() {
+		timer.cancel();
+
+		startFlag = false;
+		clearParticles();
+		setChanged();
+		notifyObservers(SIMULATION_FINISHED);
 	}
 
 	/*
-	 * --- Movement calculations ---
+	 * --- particle interactions with wall and each other ---
 	 */
 
 	/*
@@ -344,14 +456,14 @@ public class Universe extends Observable {
 	 */
 	protected Point2D detectCollisionPoint(Particle particleOne, Particle particleTwo) {
 
-		Point2D p1 = particleOne.getLocation();
-		Point2D p2 = particleTwo.getLocation();
+		Point2D pointOne = particleOne.getLocation();
+		Point2D pointTwo = particleTwo.getLocation();
 
-		Vector2d vec = new Vector2d(p2.getX() - p1.getX(), p2.getY() - p1.getY());
-		vec.normalize();
+		Vector2d vector = new Vector2d(pointTwo.getX() - pointOne.getX(), pointTwo.getY() - pointOne.getY());
+		vector.normalize();
 
-		double nx = p1.getX() + (vec.x * particleOne.getRadius());
-		double ny = p1.getY() + (vec.y * particleOne.getRadius());
+		double nx = pointOne.getX() + (vector.x * particleOne.getRadius());
+		double ny = pointOne.getY() + (vector.y * particleOne.getRadius());
 		return new Point2D.Double(nx, ny);
 
 	}
@@ -517,8 +629,6 @@ public class Universe extends Observable {
 
 			collisionSet.add(new CollisionFlag(fast, particleSmall));
 		}
-		/* TODO: wofür das sysout? */
-		System.out.println(particleList.size());
 	}
 
 	/*
@@ -566,13 +676,12 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * --- Particle handling ---
+	 * --- Particle creation and destruction ---
 	 */
 	public Particle createParticle(double x, double y) {
 		Particle particle = new Particle(getParticleMass(), getParticleDensity(), x, y);
 		synchronized (particleList) {
 			particleList.add(particle);
-			creationCounter++;
 		}
 		return particle;
 	}
@@ -586,4 +695,5 @@ public class Universe extends Observable {
 			particleList.clear();
 		}
 	}
+
 }

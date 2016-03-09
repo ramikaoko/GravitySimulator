@@ -1,18 +1,23 @@
 package de.ra.simulation;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -25,34 +30,21 @@ public class Controller extends JPanel {
 
 	private static final String START_TEXT = "Start";
 
-	private static final String STARTED_TEXT = "läuft";
+	private static final String STARTED_TEXT = "Neustart";
 
 	private static final double MAX_MASS = 10000000;
 
 	private static final double MAX_DENSITY = 15;
 
+	private final Universe universe;
+
 	public Controller(Universe universe) {
-		initializeButtonControl(this, universe);
-	}
-
-	private static int simulationTime = 1;
-	private static int interval = 1;
-	private static int particlesPerInterval = 1;
-
-	public static int getSimulationTime() {
-		return simulationTime;
-	}
-
-	public static int getInterval() {
-		return interval;
-	}
-
-	public static int getParticlesPerInterval() {
-		return particlesPerInterval;
+		this.universe = universe;
+		initializeButtonControl(this);
 	}
 
 	/* The GUI for the control panel options will be set here */
-	protected void initializeButtonControl(JPanel panel, Universe universe) {
+	protected void initializeButtonControl(JPanel panel) {
 
 		JButton button;
 		JLabel label;
@@ -63,87 +55,83 @@ public class Controller extends JPanel {
 		gbc.insets = new Insets(0, 0, 5, 0);
 
 		/*
+		 * separator = new JSeparator(); gbc.gridy++; panel.add(separator, gbc);
+		 */
+
+		/*
 		 * --- Simulationtime ---
 		 */
-		separator = new JSeparator();
+
+		label = new JLabel("Simulationszeit [s]", (int) CENTER_ALIGNMENT);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 0;
 		gbc.gridy = 0;
-		panel.add(separator, gbc);
-
-		label = new JLabel("Zeit [s]: ", (int) CENTER_ALIGNMENT);
-		gbc.gridy++;
 		panel.add(label, gbc);
 
-		JSpinner spinnerTime = new JSpinner(new SpinnerNumberModel(simulationTime, 1, 600, 1));
+		JSpinner spinnerTime = new JSpinner(new SpinnerNumberModel(universe.getSimulationTime(), 1, 600, 1));
 		spinnerTime.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerTime.getValue();
 				if (value instanceof Number)
-					simulationTime = ((Number) value).intValue();
+					universe.setSimulationTime(((Number) value).longValue());
 			}
 		});
 		gbc.gridy++;
 		panel.add(spinnerTime, gbc);
 
 		/*
-		 * --- Intervalspinner ---
+		 * --- Interval ---
 		 */
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
 
-		label = new JLabel("Intervall [s]: ", (int) CENTER_ALIGNMENT);
+		label = new JLabel("Intervall [s]", (int) CENTER_ALIGNMENT);
 		gbc.gridy++;
 		panel.add(label, gbc);
 
-		JSpinner spinnerInterval = new JSpinner(new SpinnerNumberModel(interval, 1, 100, 1));
+		JSpinner spinnerInterval = new JSpinner(new SpinnerNumberModel(universe.getInterval(), 1, 100, 1));
 		spinnerInterval.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerInterval.getValue();
 				if (value instanceof Number)
-					interval = ((Number) value).intValue();
+					universe.setInterval(((Number) value).intValue());
 			}
 		});
 		gbc.gridy++;
 		panel.add(spinnerInterval, gbc);
 
 		/*
-		 * --- Partikelspinner ---
+		 * --- Particel per interval ---
 		 */
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
 
-		label = new JLabel("Partikelanzahl: ", (int) CENTER_ALIGNMENT);
+		label = new JLabel("Partikel / Intervall", (int) CENTER_ALIGNMENT);
 		gbc.gridy++;
 		panel.add(label, gbc);
 
-		JSpinner spinnerParticles = new JSpinner(new SpinnerNumberModel(particlesPerInterval, 1, 10, 1));
+		JSpinner spinnerParticles = new JSpinner(new SpinnerNumberModel(universe.getParticlesPerInterval(), 1, 10, 1));
 		spinnerParticles.addChangeListener(new ChangeListener() {
 
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Object value = spinnerParticles.getValue();
 				if (value instanceof Number)
-					particlesPerInterval = ((Number) value).intValue();
+					universe.setParticlesPerInterval(((Number) value).intValue());
 			}
 		});
 		gbc.gridy++;
 		panel.add(spinnerParticles, gbc);
 
 		/*
-		 * --- Startbutton ---
+		 * --- Buttons ---
 		 */
 
 		separator = new JSeparator();
 		gbc.gridy++;
 		panel.add(separator, gbc);
 
+		/* startbutton */
 		final JButton startButton = new JButton(START_TEXT);
 		gbc.gridy++;
 		startButton.addActionListener(new ActionListener() {
@@ -157,60 +145,7 @@ public class Controller extends JPanel {
 		});
 		panel.add(startButton, gbc);
 
-		/*
-		 * --- Mass ---
-		 */
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
-
-		label = new JLabel("Masse: ", (int) CENTER_ALIGNMENT);
-		gbc.gridy++;
-		panel.add(label, gbc);
-
-		JSpinner spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1000, MAX_MASS, 1000));
-		spinnerMass.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				Object value = spinnerMass.getValue();
-				if (value instanceof Number)
-					universe.setParticleMass(((Number) value).doubleValue());
-			}
-		});
-		gbc.gridy++;
-		panel.add(spinnerMass, gbc);
-
-		/*
-		 * --- Density ---
-		 */
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
-
-		label = new JLabel("Dichte: ", (int) CENTER_ALIGNMENT);
-		gbc.gridy++;
-		panel.add(label, gbc);
-
-		JSpinner spinnerDensity = new JSpinner(
-				new SpinnerNumberModel(universe.getParticleDensity(), 0.1, MAX_DENSITY, 0.1));
-		spinnerDensity.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				Object value = spinnerDensity.getValue();
-				if (value instanceof Number)
-					universe.setParticleDensity(((Number) value).doubleValue());
-			}
-		});
-		gbc.gridy++;
-		panel.add(spinnerDensity, gbc);
-
-		/*
-		 * --- Pause ---
-		 */
-		separator = new JSeparator();
-		gbc.gridy++;
-		panel.add(separator, gbc);
-
+		/* pausebutton */
 		final JButton pauseButton = new JButton(PAUSE_TEXT);
 		gbc.gridy++;
 		pauseButton.addActionListener(new ActionListener() {
@@ -224,6 +159,7 @@ public class Controller extends JPanel {
 		});
 		panel.add(pauseButton, gbc);
 
+		/* resultbutton */
 		button = new JButton("Auswertung");
 		gbc.gridy++;
 		button.addActionListener(new ActionListener() {
@@ -235,13 +171,11 @@ public class Controller extends JPanel {
 		});
 		panel.add(button, gbc);
 
-		/*
-		 * --- delete ---
-		 */
-
-		button = new JButton("löschen");
+		/* deletebutton */
+		button = new JButton("Löschen");
 		gbc.gridy++;
 		button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				universe.clearParticles();
@@ -250,71 +184,123 @@ public class Controller extends JPanel {
 		panel.add(button, gbc);
 
 		/*
-		 * --- Testbuttons ---
+		 * --- Usercontrols for individual particles ---
 		 */
+
+		/* masscontrol */
 		separator = new JSeparator();
 		gbc.gridy++;
 		panel.add(separator, gbc);
 
-		button = new JButton("Alpha = 90°");
+		label = new JLabel("Masse", (int) CENTER_ALIGNMENT);
 		gbc.gridy++;
-		button.addActionListener(new ActionListener() {
+		panel.add(label, gbc);
+
+		JSpinner spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1000, MAX_MASS, 1000));
+		spinnerMass.addChangeListener(new ChangeListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				Point startParticleOne = new Point(600, 500);
-				Point startParticleTwo = new Point(200, 500);
-				Point endParticleOne = new Point(200, 500);
-				Point endParticleTwo = new Point(900, 500);
-
-				Particle particleTestOne = universe.createParticle(startParticleOne.getX(), startParticleOne.getY());
-				Particle particleTestTwo = universe.createParticle(startParticleTwo.getX(), startParticleTwo.getY());
-
-				particleTestOne.calculateVector(startParticleOne, endParticleOne);
-				particleTestTwo.calculateVector(startParticleTwo, endParticleTwo);
+			public void stateChanged(ChangeEvent e) {
+				Object value = spinnerMass.getValue();
+				if (value instanceof Number)
+					universe.setParticleMass(((Number) value).doubleValue());
 			}
 		});
-		panel.add(button, gbc);
-
-		/* Alpha < 90° */
-		button = new JButton("Alpha < 90°");
 		gbc.gridy++;
-		button.addActionListener(new ActionListener() {
+		panel.add(spinnerMass, gbc);
+
+		/* densitycontrol */
+		label = new JLabel("Dichte", (int) CENTER_ALIGNMENT);
+		gbc.gridy++;
+		panel.add(label, gbc);
+
+		JSpinner spinnerDensity = new JSpinner(
+				new SpinnerNumberModel(universe.getParticleDensity(), 0.1, MAX_DENSITY, 0.1));
+		spinnerDensity.addChangeListener(new ChangeListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				Point startParticleOne = new Point(600, 500);
-				Point startParticleTwo = new Point(200, 500);
-				Point end = new Point(500, 800);
-
-				Particle particleTestOne = universe.createParticle(startParticleOne.getX(), startParticleOne.getY());
-				Particle particleTestTwo = universe.createParticle(startParticleTwo.getX(), startParticleTwo.getY());
-
-				particleTestOne.calculateVector(startParticleOne, end);
-				particleTestTwo.calculateVector(startParticleTwo, end);
+			public void stateChanged(ChangeEvent e) {
+				Object value = spinnerDensity.getValue();
+				if (value instanceof Number)
+					universe.setParticleDensity(((Number) value).doubleValue());
 			}
 		});
-		panel.add(button, gbc);
-
-		/* Alpha > 90° */
-		button = new JButton("Alpha > 90°");
 		gbc.gridy++;
-		button.addActionListener(new ActionListener() {
+		panel.add(spinnerDensity, gbc);
+
+		/*
+		 * --- counter for time and particles ---
+		 */
+
+		separator = new JSeparator();
+		gbc.gridy++;
+		panel.add(separator, gbc);
+
+		/* label indicating the remaining simulation time */
+		final JLabel coutdownLabel = new JLabel("00:00");
+		universe.addObserver(new Observer() {
+
+			String lastTime = "";
+
+			public void update(Observable o, Object arg) {
+				long remainingTime = universe.getRemainingTime();
+				String timeString = "";
+				long minutes = remainingTime / (60 * 1000);
+				long seconds = remainingTime - (minutes * (60 * 1000));
+				seconds /= 1000;
+				timeString += (minutes < 10 ? ("0" + minutes) : (minutes + "")) + ":"
+						+ (seconds < 10 ? ("0" + seconds) : (seconds + ""));
+				if (!lastTime.equalsIgnoreCase(timeString)) {
+					lastTime = timeString;
+					coutdownLabel.setText(lastTime);
+				}
+
+				if (Universe.SIMULATION_FINISHED.equals(arg))
+					showResults();
+			}
+		});
+		coutdownLabel.setFont(getFont().deriveFont(14f));
+		coutdownLabel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Restzeit"),
+				BorderFactory.createEmptyBorder(2, 2, 2, 2)));
+		coutdownLabel.setHorizontalTextPosition(JLabel.CENTER);
+		coutdownLabel.setHorizontalAlignment(JLabel.CENTER);
+		gbc.gridy++;
+		panel.add(coutdownLabel, gbc);
+
+		/*
+		 * label indicating the current amount of particles in the contentPane
+		 */
+		final JLabel particleCountLabel = new JLabel("0");
+		universe.addObserver(new Observer() {
+
+			String lastCount = "";
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				Point startParticleOne = new Point(600, 500);
-				Point startParticleTwo = new Point(200, 500);
-				Point end = new Point(500, 200);
+			public void update(Observable o, Object arg) {
+				int particleCount = universe.getParticleList().size();
+				String countString = "";
+				countString = particleCount + "";
 
-				Particle particleTestOne = universe.createParticle(startParticleOne.getX(), startParticleOne.getY());
-				particleTestOne.calculateVector(startParticleOne, end);
-				Particle particleTestTwo = universe.createParticle(startParticleTwo.getX(), startParticleTwo.getY());
-				particleTestTwo.calculateVector(startParticleTwo, end);
-
+				if (!lastCount.equalsIgnoreCase(countString)) {
+					lastCount = countString;
+					particleCountLabel.setText(lastCount);
+				}
 			}
 		});
-		panel.add(button, gbc);
+		particleCountLabel.setFont(getFont().deriveFont(14f));
+		particleCountLabel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder("Partikel"),
+				BorderFactory.createEmptyBorder(2, 2, 2, 2)));
+		particleCountLabel.setHorizontalTextPosition(JLabel.CENTER);
+		particleCountLabel.setHorizontalAlignment(JLabel.CENTER);
+		gbc.gridy++;
+		panel.add(particleCountLabel, gbc);
+	}
 
+	protected void showResults() {
+		JDialog dialog = new ResultDialog(universe);
+		dialog.setModal(true);
+		dialog.setMinimumSize(new Dimension(640, 480));
+		dialog.setLocationRelativeTo(SwingUtilities.getRootPane(this));
+		dialog.setVisible(true);
 	}
 }

@@ -114,7 +114,7 @@ public class Particle {
 
 		this.mass = mass;
 		this.density = density;
-		this.radius = calculateRadius();
+		calculateRadius();
 		this.location = new Point2D.Double(x, y);
 		id = getNewId();
 	}
@@ -154,15 +154,15 @@ public class Particle {
 	 * particle with a high density is small, a light particle with a high
 	 * density is tiny.
 	 */
-	protected double calculateRadius() {
-		return Math.log(Math.E + mass / Math.pow(2, density));
+	protected void calculateRadius() {
+		radius = Math.log(Math.E + mass / Math.pow(2, density));
 	}
 
 	/* TODO */
 	protected void moveParticle(double timeSteps) {
-		double nx = vector.getX() * velocity / timeSteps;
-		double ny = vector.getY() * velocity / timeSteps;
-		location.setLocation(location.getX() + nx, location.getY() + ny);
+		double newX = vector.getX() * velocity / timeSteps;
+		double newY = vector.getY() * velocity / timeSteps;
+		location.setLocation(location.getX() + newX, location.getY() + newY);
 	}
 
 	/*
