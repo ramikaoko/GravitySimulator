@@ -193,37 +193,57 @@ public class Universe extends Observable {
 
 	protected void randomCreationInterval() {
 		Timer timer = new Timer(false);
-		/* multiplie by 1000 to get the time in seconds */
+		/*
+		 * The time after which the simulation ends. Multiply by 1000 to get the
+		 * time in seconds
+		 */
 		int simulationTime = Controller.getSimulationTime() * 1000;
+		/*  */
+		final long endTime = System.currentTimeMillis() + simulationTime;
+		/* this value indicates the period */
 		int period = Controller.getInterval() * 1000;
+		/* this is number of particles created during this period of time */
 		int particlePerInterval = Controller.getParticlesPerInterval();
 		int delay = period;
 		timer.scheduleAtFixedRate(new TimerTask() {
 
 			/*
-			 * TODO: Pause Button wirkt hier noch nicht, trotz Pause wird weiter
+			 * TODO:
+			 * 
+			 * 1. Pause Button wirkt hier noch nicht, trotz Pause wird weiter
 			 * gezeichnet
+			 * 
+			 * 2. erschaffung der Partikel im oberen und linken rand, rand darf
+			 * nicht berührt werden
 			 */
 
 			@Override
 			public void run() {
 
+				if (System.currentTimeMillis() >= endTime)
+					timer.cancel();
+
 				/*
-				 * Create a random number between 25 and maxWidth/maxHeight for
-				 * the x and y coordinates, the actual size of the window can
-				 * change and we don't want the particles to be created in the
-				 * corners or near the edges.
+				 * Create a random number between 17 and maxWidth/maxHeight-17
+				 * for the x and y coordinates, the actual size of the window
+				 * can change and we don't want the particles to be created in
+				 * the corners or near the edges. The 17 is used because the
+				 * radius of a particle can't be bigger than 16.05
+				 * 
+				 * start.width = 842, start.height = 962
 				 */
-				int minX = 25;
-				int minY = 25;
-				int maxX = windowSize.width - 25;
-				int maxY = windowSize.height - 25;
-				int randomX = new Random().nextInt(((maxX - minX) + 1) + minX);
-				int randomY = new Random().nextInt(((maxY - minY) + 1) + minY);
-				int randomVelocity = new Random().nextInt(((100) + 1) + 50);
-				/* TODO the x and y values of the vector are always positive */
-				Vector2d randomVector = new Vector2d(randomX, randomY);
-				randomVector.normalize();
+
+				int minX = 17;
+				int minY = 17;
+				int maxX = windowSize.width - 17;
+				int maxY = windowSize.height - 17;
+				Random random = new Random();
+				int randomX = random.nextInt((maxX - minX) + 1) + minX;
+				int randomY = random.nextInt((maxY - minY) + 1) + minY;
+				int randomVelocity = random.nextInt((100) + 1) + 50;
+				double vectorX = random.nextDouble() * (random.nextBoolean() ? 1d : -1d);
+				double vectorY = random.nextDouble() * (random.nextBoolean() ? 1d : -1d);
+				Vector2d randomVector = new Vector2d(vectorX, vectorY);
 
 				Particle particleRandom = createParticle(randomX, randomY);
 				particleRandom.setMass(particleMass);
@@ -305,7 +325,7 @@ public class Universe extends Observable {
 
 		{
 			System.out.println("Reaction: absorption");
-			particleAbsorption(particleOne, particleTwo);
+			absorbParticle(particleOne, particleTwo);
 			absorptionCounter++;
 		} else if (random > 1)
 
@@ -421,15 +441,11 @@ public class Universe extends Observable {
 
 		/* set the vector for both particles */
 		particleOne.setVector(finalVectorOne);
-		System.out.println("finalVectorOne: " + finalVectorOne);
 		particleTwo.setVector(finalVectorTwo);
-		System.out.println("finalVectorTwo: " + finalVectorTwo);
 
 		/* set the velocity for both particles */
 		particleOne.setVelocity(finalVelocityOne);
-		System.out.println("finalVelocityOne: " + finalVelocityOne);
 		particleTwo.setVelocity(finalVelocityTwo);
-		System.out.println("finalVelocityTwo: " + finalVelocityTwo);
 
 	}
 
@@ -510,7 +526,7 @@ public class Universe extends Observable {
 	 * (more precisely in 10% of all absorption cases) both particles are
 	 * destroyed
 	 */
-	protected void particleAbsorption(Particle particleOne, Particle particleTwo) {
+	protected void absorbParticle(Particle particleOne, Particle particleTwo) {
 		/* the 11 ensures a random int from 0 to 10 */
 		double random = new Random().nextInt(11);
 		double dx = particleTwo.getLocation().getX() - particleOne.getLocation().getX();

@@ -146,6 +146,10 @@ public class DrawPane extends JPanel implements Observer {
 		Color cMass = new Color(255, 255, 255);
 		double mass = particle.getMass();
 
+		/*
+		 * TODO: minMass ist 1000, Farbänderung anpassen und im oberen Bereich
+		 * deutlicher unterscheiden
+		 */
 		if (mass > 0 && mass <= 40)
 			cMass = new Color(255, 255, 255);
 		else if (mass > 40 && mass <= 400)
@@ -158,8 +162,8 @@ public class DrawPane extends JPanel implements Observer {
 			cMass = new Color(255, 50, 0);
 		else if (mass > 400000 && mass <= 4000000)
 			cMass = new Color(230, 15, 0);
-		else if (mass > 400000)
-			cMass = new Color(210, 0, 0);
+		else if (mass > 4000000)
+			cMass = new Color(200, 0, 0);
 
 		return cMass;
 	}

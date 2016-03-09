@@ -19,7 +19,10 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
  * ! fehler, ? mögl. feature, - todo
  * 
  * TODO:
- * ! Problem bei Kollision: Partikel überlappen sich manchmal
+ * ! split problem, kettenreaktion und absturz
+ * - random erzeugungsproblem, endet nicht nach x sekunden oder y partikeln
+ * - random erzeugungsproblem, stoppt nicht bei pause 
+ * - deutlichere Farbänderung bei höheren Massen
  * - Überlappung bei Partikelerzeugung verhindern (Radiusversatz in Vektorrichtung?)
  * - Option: Vektoren für jeden Partikel einzeichnen
  * - Button: Auswertung

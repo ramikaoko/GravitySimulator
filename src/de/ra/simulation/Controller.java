@@ -168,7 +168,7 @@ public class Controller extends JPanel {
 		gbc.gridy++;
 		panel.add(label, gbc);
 
-		JSpinner spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1, MAX_MASS, 100));
+		JSpinner spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1000, MAX_MASS, 1000));
 		spinnerMass.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
