@@ -32,8 +32,10 @@ public class Controller extends JPanel {
 
 	private static final String STARTED_TEXT = "Neustart";
 
+	private static final double MIN_MASS = 100000;
 	private static final double MAX_MASS = 10000000;
 
+	private static final double MIN_DENSITY = 0.1;
 	private static final double MAX_DENSITY = 15;
 
 	private final Universe universe;
@@ -55,13 +57,10 @@ public class Controller extends JPanel {
 		gbc.insets = new Insets(0, 0, 5, 0);
 
 		/*
-		 * separator = new JSeparator(); gbc.gridy++; panel.add(separator, gbc);
+		 * --- Simulation setup ---
 		 */
 
-		/*
-		 * --- Simulationtime ---
-		 */
-
+		/* simulationtime */
 		label = new JLabel("Simulationszeit [s]", (int) CENTER_ALIGNMENT);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 0;
@@ -81,15 +80,14 @@ public class Controller extends JPanel {
 		gbc.gridy++;
 		panel.add(spinnerTime, gbc);
 
-		/*
-		 * --- Interval ---
-		 */
-
+		/* interval */
 		label = new JLabel("Intervall [s]", (int) CENTER_ALIGNMENT);
 		gbc.gridy++;
 		panel.add(label, gbc);
 
-		JSpinner spinnerInterval = new JSpinner(new SpinnerNumberModel(universe.getInterval(), 1, 100, 1));
+		/* maxValue is half of the simulationTime, so 10 as the default value */
+		JSpinner spinnerInterval = new JSpinner(
+				new SpinnerNumberModel(universe.getInterval(), 1, universe.getSimulationTime() / 2, 1));
 		spinnerInterval.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -102,15 +100,12 @@ public class Controller extends JPanel {
 		gbc.gridy++;
 		panel.add(spinnerInterval, gbc);
 
-		/*
-		 * --- Particel per interval ---
-		 */
-
+		/* particels per interval */
 		label = new JLabel("Partikel / Intervall", (int) CENTER_ALIGNMENT);
 		gbc.gridy++;
 		panel.add(label, gbc);
 
-		JSpinner spinnerParticles = new JSpinner(new SpinnerNumberModel(universe.getParticlesPerInterval(), 1, 10, 1));
+		JSpinner spinnerParticles = new JSpinner(new SpinnerNumberModel(universe.getParticlesPerInterval(), 1, 5, 1));
 		spinnerParticles.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -139,8 +134,14 @@ public class Controller extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 
-				universe.startSimulation();
-				startButton.setText(universe.isStartedFlag() ? STARTED_TEXT : START_TEXT);
+				if (universe.isStartedFlag() == false) {
+					universe.startSimulation();
+					startButton.setText(universe.isStartedFlag() ? STARTED_TEXT : START_TEXT);
+				} else {
+					universe.stopSimulation();
+					universe.startSimulation();
+				}
+
 			}
 		});
 		panel.add(startButton, gbc);
@@ -166,7 +167,7 @@ public class Controller extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
+				universe.stopSimulation();
 			}
 		});
 		panel.add(button, gbc);
@@ -184,7 +185,7 @@ public class Controller extends JPanel {
 		panel.add(button, gbc);
 
 		/*
-		 * --- Usercontrols for individual particles ---
+		 * --- usercontrols for individual particles ---
 		 */
 
 		/* masscontrol */
@@ -196,7 +197,8 @@ public class Controller extends JPanel {
 		gbc.gridy++;
 		panel.add(label, gbc);
 
-		JSpinner spinnerMass = new JSpinner(new SpinnerNumberModel(universe.getParticleMass(), 1000, MAX_MASS, 1000));
+		JSpinner spinnerMass = new JSpinner(
+				new SpinnerNumberModel(universe.getParticleMass(), MIN_MASS, MAX_MASS, 100000));
 		spinnerMass.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -215,7 +217,7 @@ public class Controller extends JPanel {
 		panel.add(label, gbc);
 
 		JSpinner spinnerDensity = new JSpinner(
-				new SpinnerNumberModel(universe.getParticleDensity(), 0.1, MAX_DENSITY, 0.1));
+				new SpinnerNumberModel(universe.getParticleDensity(), MIN_DENSITY, MAX_DENSITY, 0.1));
 		spinnerDensity.addChangeListener(new ChangeListener() {
 
 			@Override
@@ -296,10 +298,11 @@ public class Controller extends JPanel {
 		panel.add(particleCountLabel, gbc);
 	}
 
+	/* method to create and show a dialog with data visualization */
 	protected void showResults() {
 		JDialog dialog = new ResultDialog(universe);
 		dialog.setModal(true);
-		dialog.setMinimumSize(new Dimension(640, 480));
+		dialog.setMinimumSize(new Dimension(800, 600));
 		dialog.setLocationRelativeTo(SwingUtilities.getRootPane(this));
 		dialog.setVisible(true);
 	}

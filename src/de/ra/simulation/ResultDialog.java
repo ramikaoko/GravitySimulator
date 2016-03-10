@@ -16,6 +16,9 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+/* TODO: Kommentare, lesbarkeit */
+
+@SuppressWarnings("serial")
 public class ResultDialog extends JDialog {
 
 	private final Universe universe;
@@ -42,7 +45,7 @@ public class ResultDialog extends JDialog {
 
 		// get a reference to the plot for further customisation...
 		final XYPlot plot = chart.getXYPlot();
-		plot.setBackgroundPaint(Color.white);
+		plot.setBackgroundPaint(Color.white.darker());
 		// plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
 		plot.setDomainGridlinePaint(Color.darkGray);
 		plot.setRangeGridlinePaint(Color.darkGray);

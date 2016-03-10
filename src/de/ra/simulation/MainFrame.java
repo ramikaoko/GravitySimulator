@@ -16,23 +16,17 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 
 /* 
- * ! fehler, ? mögl. feature, - todo
+ * ! fehler / ? feature / - todo
  * 
  * TODO:
- * ! split problem, kettenreaktion und absturz
- * - random erzeugungsproblem, endet nicht nach x sekunden oder y partikeln
- * - random erzeugungsproblem, stoppt nicht bei pause 
- * - deutlichere Farbänderung bei höheren Massen
+ * ! performance bei >150 Partikeln bricht drastisch ein. 
  * - Überlappung bei Partikelerzeugung verhindern (Radiusversatz in Vektorrichtung?)
- * - Option: Vektoren für jeden Partikel einzeichnen
- * - Button: Auswertung
- * - Auswertungsfenster mit Zahlenwerten und Diagram
- * - Kollisionen/s, Spaltugen/s
- * - konsistente Namensgebung
- * - Codeleichen löschen, Kommentare prüfen
+ * - konsistente, sprechende Namensgebung Namensgebung
  * - Kommentare zu allen Methoden, Klassen und Variablen schreiben
+ * - Codeleichen löschen, Kommentare prüfen
+ * ? Vektoren für jeden Partikel einzeichnen
  * ? JSpinner in Controller in 1^10er Schritten steigen lassen
- * ? Gravitation implementieren
+ * ? Gravitation implementieren, Partikel ziehen sich entsprechend ihrer Massen an
  */
 
 @SuppressWarnings("serial")

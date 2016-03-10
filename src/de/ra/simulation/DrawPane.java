@@ -140,32 +140,27 @@ public class DrawPane extends JPanel implements Observer {
 
 	/*
 	 * the color of the outer circle changes from white to dark red while the
-	 * mass increases, this and the radius of a particle are indicators for mass
+	 * mass increases, this and the radius of a particle are indicators for
+	 * mass. The color changes with a stepsize of 1.6M
 	 */
 	private Color determineColorMass(Particle particle) {
-		Color cMass = new Color(255, 255, 255);
+		Color colorMass = new Color(255, 255, 255);
 		double mass = particle.getMass();
 
-		/*
-		 * TODO: minMass ist 1000, Farbänderung anpassen und im oberen Bereich
-		 * deutlicher unterscheiden
-		 */
-		if (mass > 0 && mass <= 40)
-			cMass = new Color(255, 255, 255);
-		else if (mass > 40 && mass <= 400)
-			cMass = new Color(255, 145, 0);
-		else if (mass > 400 && mass <= 4000)
-			cMass = new Color(255, 115, 0);
-		else if (mass > 4000 && mass <= 40000)
-			cMass = new Color(255, 85, 0);
-		else if (mass > 40000 && mass <= 400000)
-			cMass = new Color(255, 50, 0);
-		else if (mass > 400000 && mass <= 4000000)
-			cMass = new Color(230, 15, 0);
-		else if (mass > 4000000)
-			cMass = new Color(200, 0, 0);
+		if (mass > 0 && mass <= 1600000)
+			colorMass = new Color(255, 145, 0);
+		else if (mass > 1600000 && mass <= 3200000)
+			colorMass = new Color(255, 115, 0);
+		else if (mass > 3200000 && mass <= 4800000)
+			colorMass = new Color(255, 85, 0);
+		else if (mass > 4800000 && mass <= 6400000)
+			colorMass = new Color(255, 40, 0);
+		else if (mass > 6400000 && mass <= 8000000)
+			colorMass = new Color(250, 0, 0);
+		else if (mass > 8000000)
+			colorMass = new Color(200, 0, 0);
 
-		return cMass;
+		return colorMass;
 	}
 
 	/*
@@ -174,23 +169,23 @@ public class DrawPane extends JPanel implements Observer {
 	 * density
 	 */
 	private Color determineColorDensity(Particle particle) {
-		Color cDensity = new Color(255, 255, 255);
+		Color colorDensity = new Color(255, 255, 255);
 		double density = particle.getDensity();
 		if (density > 0 && density <= 1.8)
-			cDensity = new Color(230, 230, 230);
+			colorDensity = new Color(230, 230, 230);
 		else if (density > 1.8 && density <= 3.5)
-			cDensity = new Color(160, 160, 160);
+			colorDensity = new Color(160, 160, 160);
 		else if (density > 3.5 && density <= 5.2)
-			cDensity = new Color(128, 128, 128);
+			colorDensity = new Color(128, 128, 128);
 		else if (density > 5.2 && density <= 6.9)
-			cDensity = new Color(96, 96, 96);
+			colorDensity = new Color(96, 96, 96);
 		else if (density > 6.9 && density <= 8.6)
-			cDensity = new Color(64, 64, 64);
+			colorDensity = new Color(64, 64, 64);
 		else if (density > 8.6 && density <= 10.3)
-			cDensity = new Color(35, 35, 35);
+			colorDensity = new Color(35, 35, 35);
 		else if (density > 10.3)
-			cDensity = new Color(0, 0, 0);
+			colorDensity = new Color(0, 0, 0);
 
-		return cDensity;
+		return colorDensity;
 	}
 }
