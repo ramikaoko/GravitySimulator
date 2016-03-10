@@ -85,7 +85,10 @@ public class Controller extends JPanel {
 		gbc.gridy++;
 		panel.add(label, gbc);
 
-		/* maxValue is half of the simulationTime, so 10 as the default value */
+		/*
+		 * maxValue is always half as big as the simulationTime, so 10 is the
+		 * default value
+		 */
 		JSpinner spinnerInterval = new JSpinner(
 				new SpinnerNumberModel(universe.getInterval(), 1, universe.getSimulationTime() / 2, 1));
 		spinnerInterval.addChangeListener(new ChangeListener() {
@@ -185,7 +188,7 @@ public class Controller extends JPanel {
 		panel.add(button, gbc);
 
 		/*
-		 * --- usercontrols for individual particles ---
+		 * --- Usercontrols for individually set particles ---
 		 */
 
 		/* masscontrol */
@@ -231,14 +234,14 @@ public class Controller extends JPanel {
 		panel.add(spinnerDensity, gbc);
 
 		/*
-		 * --- counter for time and particles ---
+		 * --- Counters to indicate time and particles ---
 		 */
 
 		separator = new JSeparator();
 		gbc.gridy++;
 		panel.add(separator, gbc);
 
-		/* label indicating the remaining simulation time */
+		/* Label indicating the remaining simulation time */
 		final JLabel coutdownLabel = new JLabel("00:00");
 		universe.addObserver(new Observer() {
 
@@ -270,7 +273,7 @@ public class Controller extends JPanel {
 		panel.add(coutdownLabel, gbc);
 
 		/*
-		 * label indicating the current amount of particles in the contentPane
+		 * Label indicating the current amount of particles in the contentPane
 		 */
 		final JLabel particleCountLabel = new JLabel("0");
 		universe.addObserver(new Observer() {
@@ -298,7 +301,11 @@ public class Controller extends JPanel {
 		panel.add(particleCountLabel, gbc);
 	}
 
-	/* method to create and show a dialog with data visualization */
+	/*
+	 * --- Resultdialog ---
+	 */
+
+	/* Method to create and show a dialog with data visualization */
 	protected void showResults() {
 		JDialog dialog = new ResultDialog(universe);
 		dialog.setModal(true);

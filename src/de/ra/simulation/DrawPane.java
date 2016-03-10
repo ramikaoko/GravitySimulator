@@ -38,8 +38,9 @@ public class DrawPane extends JPanel implements Observer {
 	boolean drawFront = true;
 
 	/*
-	 * If the observer gets a notification the picture is repainted, therefore
-	 * the particles move with a period of 16ms
+	 * If the observer gets a notification the picture is repainted, we set the
+	 * period to 16ms to enable the calculation methods in universe to finish
+	 * their computations within time
 	 */
 	public DrawPane(Universe universe) {
 		int period = 16;
@@ -66,7 +67,10 @@ public class DrawPane extends JPanel implements Observer {
 		});
 	}
 
-	/* TODO */
+	/*
+	 * Create two images which will be switched every few milliseconds to
+	 * quicken the drawing process and avoid stuttering
+	 */
 	@Override
 	protected void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);
@@ -79,27 +83,30 @@ public class DrawPane extends JPanel implements Observer {
 			else
 				buffer = back;
 		}
-		/* activate rendering for the buffered images */
-		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+		/* Draw the buffer as a rendered image */
 		g2d.drawRenderedImage(buffer, AffineTransform.getTranslateInstance(0, 0));
 	}
 
-	/* create two bufferImages on which the picture is drawn */
+	/* Create two bufferImages on which the picture is drawn */
 	private synchronized void createBuffers() {
 		front = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 		back = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 	}
 
 	/*
-	 * this observer method will listen for changes in Universe() and update
-	 * accordingly
+	 * This observer method will listen for changes in Universe() and update the
+	 * buffer accordingly
 	 */
 	@Override
 	public void update(Observable arg0, Object arg1) {
 		updateBuffer();
 	}
 
-	/* TODO */
+	/*
+	 * Check for the window size and create a synchronized access to create the
+	 * buffers. A buffer contains a bufferedImage with the width and size of the
+	 * window and the last updatet drawings
+	 */
 	private synchronized void updateBuffer() {
 		Graphics2D g2d;
 		Rectangle bounds;
@@ -119,12 +126,17 @@ public class DrawPane extends JPanel implements Observer {
 			}
 		}
 
-		/* activate antialiasing & rendering for the particles */
+		/* Activate antialiasing & rendering for the particles */
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 
+		/* Set the background color to dark grey */
 		g2d.setColor(Color.DARK_GRAY);
 		g2d.fill(bounds);
+
+		/*
+		 * Calculate the shape and color for each particle within the universe
+		 */
 		List<Particle> particleList = universe.getParticleList();
 		for (Particle particle : particleList) {
 			Shape coreShape = particle.getCoreShape();
@@ -135,11 +147,12 @@ public class DrawPane extends JPanel implements Observer {
 			g2d.setColor(determineColorDensity(particle));
 			g2d.fill(coreShape);
 		}
+		/* Toggle the boolean to switch the images */
 		drawFront = !drawFront;
 	}
 
 	/*
-	 * the color of the outer circle changes from white to dark red while the
+	 * The color of the outer circle changes from white to dark red while the
 	 * mass increases, this and the radius of a particle are indicators for
 	 * mass. The color changes with a stepsize of 1.6M
 	 */
@@ -164,7 +177,7 @@ public class DrawPane extends JPanel implements Observer {
 	}
 
 	/*
-	 * the color of the inner circle changes from light grey to black while the
+	 * The color of the inner circle changes from light grey to black while the
 	 * density increases, this and the decrease of the radius are indicators for
 	 * density
 	 */

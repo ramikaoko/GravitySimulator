@@ -23,15 +23,15 @@ import javax.vecmath.Vector2d;
 public class Universe extends Observable {
 
 	/*
-	 * the LinkedList which stores every particle in the universe, it has to be
+	 * The LinkedList which stores every particle in the universe, it has to be
 	 * synchronized so multiple methods can access the list without a
 	 * concurrentModificationException
 	 */
 	private final List<Particle> particleList = Collections.synchronizedList(new LinkedList<Particle>());
 
 	/*
-	 * the getter of our particleList creates is synchronized and creates a copy
-	 * of the particleList<>, otherwise a concurrentModificationException occurs
+	 * The getter of our particleList is synchronized and creates a copy of the
+	 * particleList<>, otherwise a concurrentModificationException occurs
 	 * because the createParticle() and moveParticle() methods are trying to
 	 * access simultaneously
 	 */
@@ -40,20 +40,20 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * the mass of a defined particle is set to 100 as the default value but it
+	 * The mass of a defined particle is set to 100 as the default value but it
 	 * can be changed through user input in Controller()
 	 */
 	private double particleMass = 1000000d;
 
 	/*
-	 * analog to particleMass, the default value is 1 and can vary between 0,1
+	 * Analog to particleMass, the default value is 1 and can vary between 0,1
 	 * and 15
 	 */
 	private double particleDensity = 1d;
 
 	/*
-	 * These values are used to analyse whats happening in the simulation and to
-	 * show these results in the dialog
+	 * These values are used to analyse what's happening in the simulation and
+	 * to show these results in a dialog
 	 */
 	protected int collisionCounter = 0;
 
@@ -66,7 +66,7 @@ public class Universe extends Observable {
 	protected int splitCounter = 0;
 
 	/*
-	 * the size of the contentPane, it's used for collision detection with the
+	 * The size of the contentPane, it's used for collision detection with the
 	 * borders of our panel
 	 */
 	protected Dimension windowSize;
@@ -77,34 +77,46 @@ public class Universe extends Observable {
 	 */
 	private static boolean pauseFlag = false;
 
-	/* TODO */
+	/*
+	 * This flag indicates whether the simulation has started yet, it is used by
+	 * the startButton in Controller()
+	 */
 	private static boolean startFlag = false;
 
 	/* A set of collisionFlags */
 	TreeSet<CollisionFlag> collisionSet = new TreeSet<>();
 
-	/* TODO */
+	/*
+	 * This is the timer for our timerTasks, we set it as a protected field so
+	 * we can stop all timerTasks by calling the stopSimulation() method
+	 */
 	protected Timer timer = null;
 
-	/* TODO */
-	private static final int DELAY = 100;
-
-	/* TODO */
+	/* The simulationTime is set in Controller(), this is the default value */
 	protected long simulationTimeInSeconds = 20;
 
-	/* TODO */
-	protected long remainingTime = 0;
-
-	/* TODO */
+	/*
+	 * Analog to simulationTimerInSeconds, interval will be set by the user in
+	 * Controller()
+	 */
 	protected int interval = 1;
 
-	/* TODO */
+	/* Same as simulationTimeInSeconds and interval */
 	protected int particlesPerInterval = 1;
 
-	/* TODO */
+	/* The remaining simultation time in seconds */
+	protected long remainingTime = 0;
+
+	/*
+	 * A flag to indicate that the simulation stopped and the evaluationDialog
+	 * can be shown
+	 */
 	public static final String SIMULATION_FINISHED = "SimulationFinished";
 
-	/* TODO */
+	/*
+	 * A LinkedList of all events that happened during a simulation, it is used
+	 * in ResultDialog to plot these events
+	 */
 	private final LinkedList<int[]> resultList = new LinkedList<>();
 
 	/*
@@ -175,12 +187,13 @@ public class Universe extends Observable {
 		return remainingTime;
 	}
 
-	public LinkedList<int[]> getResults() {
+	/* This getter will pass our List of event values */
+	public LinkedList<int[]> getEventResults() {
 		return resultList;
 	}
 
-	/* TODO */
-	public String[] getNames() {
+	/* This getter is used to create a legend in ResultDialog */
+	public String[] getEventNames() {
 		return new String[] { "Anzahl Partikel", "Kollisionen", "Abstoßungen", "Absorptionen", "Auflösungen",
 				"Spaltungen" };
 	}
@@ -194,9 +207,15 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * --- simulation starter ---
+	 * --- Simulation starter ---
 	 */
 
+	/*
+	 * Create three timerTasks which will run all calculations for the
+	 * simulation, the evaluation (which will show the results in the
+	 * resultDialog) and the interval settings to automatically create new
+	 * particles in a defined time
+	 */
 	public void startSimulation() {
 		if (!startFlag) {
 
@@ -204,17 +223,23 @@ public class Universe extends Observable {
 			particleList.clear();
 			resultList.clear();
 			startFlag = true;
+			/*
+			 * The period is set to 15ms beacuse the drawing process needs 16ms.
+			 * If we reduce both values the calculations wont be finished in
+			 * time or the movement stutters
+			 */
 			final int period = 15;
 
 			TimerTask simulationTask = createSimulationTask(period);
 			TimerTask intervalTask = createRandomParticlePerIntervalTask();
 			TimerTask evaluationTask = createEvaluationTask();
 
-			remainingTime = (simulationTimeInSeconds * 1000) - DELAY;
+			/* To get the time in seconds we multiply it by 1000 */
+			remainingTime = (simulationTimeInSeconds * 1000);
 
-			timer.scheduleAtFixedRate(simulationTask, DELAY, period);
-			timer.scheduleAtFixedRate(evaluationTask, DELAY, 1000);
-			timer.scheduleAtFixedRate(intervalTask, DELAY, interval * 1000);
+			timer.scheduleAtFixedRate(simulationTask, 0, period);
+			timer.scheduleAtFixedRate(intervalTask, 0, interval * 1000);
+			timer.scheduleAtFixedRate(evaluationTask, 0, 1000);
 
 		}
 	}
@@ -323,10 +348,8 @@ public class Universe extends Observable {
 				 * Create a random number between 17 and maxWidth/maxHeight-17
 				 * for the x and y coordinates, the actual size of the window
 				 * can change and we don't want the particles to be created in
-				 * the corners or near the edges. The 17 is used because the
+				 * the corners or near the edges. The value is 17 because the
 				 * radius of a particle can't be bigger than 16.05
-				 * 
-				 * start.width = 842, start.height = 962
 				 */
 
 				for (int i = 0; i < particlesPerInterval; i++) {
@@ -336,7 +359,7 @@ public class Universe extends Observable {
 					int maxY = windowSize.height - 17;
 					Random random = new Random();
 
-					/* random position within the contentPane */
+					/* random positions within the contentPane */
 					int randomX = random.nextInt((maxX - minX) + 1) + minX;
 					int randomY = random.nextInt((maxY - minY) + 1) + minY;
 
@@ -355,7 +378,6 @@ public class Universe extends Observable {
 					Vector2d randomVector = new Vector2d(vectorX, vectorY);
 
 					/* create a particle with the calculated values */
-					/* TODO: nach Erschaffung -> neurechnung des radius! */
 					Particle particleRandom = createParticle(randomX, randomY, randomMass, randomDensity);
 					particleRandom.setVelocity(randomVelocity);
 					particleRandom.setVector(randomVector);
@@ -365,6 +387,10 @@ public class Universe extends Observable {
 		return task;
 	}
 
+	/*
+	 * Stop the current simulation, delete all created particles and show the
+	 * resultdialog
+	 */
 	protected void stopSimulation() {
 		timer.cancel();
 
@@ -375,11 +401,11 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * --- particle interactions with wall and each other ---
+	 * --- Particle interactions ---
 	 */
 
 	/*
-	 * if a particle collides with one of the 4 site of the panel, the according
+	 * If a particle collides with one of the 4 site of the panel, the according
 	 * x or y value will be multiplied with -1 so the angle of incidence is
 	 * equal to the angle of emergence
 	 */
@@ -437,8 +463,8 @@ public class Universe extends Observable {
 				|| sizeDifference < (1d - diffValueSize) && velocityDifference > (1d + diffValueVelocity)
 				|| velocityDifference < (1d - diffValueVelocity)) {
 			/*
-			 * if size and velocity are valid values, one particles splits the
-			 * other
+			 * If the values for size and velocity are valid, one particle (the
+			 * faster one) splits the other (the bigger one)
 			 */
 			splitCounter++;
 			if (sizeDifference > 1)
@@ -446,15 +472,15 @@ public class Universe extends Observable {
 			else
 				splitParticle(particleTwo, particleOne);
 		} else if (random > 0.1 && random <= 1) {
-			/* in about 10% of all contacts an absorption occures */
+			/* In about 10% of all contacts an absorption occures */
 			absorbParticle(particleOne, particleTwo);
 			absorptionCounter++;
 		} else if (random > 1) {
-			/* in 90% of all contacts a collision occures */
-			elasticTwoDimensionalCollision(particleOne, particleTwo);
+			/* In 90% of all contacts a collision occures */
+			twoDimensionalElasticCollision(particleOne, particleTwo);
 			bounceCounter++;
 		} else if (random <= 0.1) {
-			/* every 100 contacts both particles are destroyed */
+			/* Every 100 contacts both particles are destroyed */
 			particleList.remove(particleOne);
 			destructionCounter++;
 		}
@@ -463,7 +489,7 @@ public class Universe extends Observable {
 	/*
 	 * This method detects the collision point between two particles, this can
 	 * be used to add particle effects or to localize the point at which new
-	 * particles are created if the bigger one gets destroyed
+	 * particles are created if the bigger one is splitted
 	 */
 	protected Point2D detectCollisionPoint(Particle particleOne, Particle particleTwo) {
 
@@ -473,9 +499,9 @@ public class Universe extends Observable {
 		Vector2d vector = new Vector2d(pointTwo.getX() - pointOne.getX(), pointTwo.getY() - pointOne.getY());
 		vector.normalize();
 
-		double nx = pointOne.getX() + (vector.x * particleOne.getRadius());
-		double ny = pointOne.getY() + (vector.y * particleOne.getRadius());
-		return new Point2D.Double(nx, ny);
+		double newX = pointOne.getX() + (vector.x * particleOne.getRadius());
+		double newY = pointOne.getY() + (vector.y * particleOne.getRadius());
+		return new Point2D.Double(newX, newY);
 
 	}
 
@@ -484,32 +510,24 @@ public class Universe extends Observable {
 	 * here. The formula for a two dimensional elastic collision can be refered
 	 * here: https://de.wikipedia.org/wiki/Sto%C3%9F_%28Physik%29
 	 */
-	protected void elasticTwoDimensionalCollision(Particle particleOne, Particle particleTwo) {
-
+	protected void twoDimensionalElasticCollision(Particle particleOne, Particle particleTwo) {
 		/*
-		 * TODO: resultierende Geschwindigkeit scheint zu klein zu sein, daher
-		 * resultiert vermutlich die Verklumpung der Partikel!
-		 */
-
-		/*
-		 * calculate the unit normal vector (also called central vector), this
+		 * Calculate the unit normal vector (also called central vector), this
 		 * vector connects the center points of both particles. We normalize the
 		 * vector afterwards to prevent strange behavior
 		 */
 		Vector2d vectorCentral = new Vector2d(particleTwo.getLocation().getX() - particleOne.getLocation().getX(),
 				particleTwo.getLocation().getY() - particleOne.getLocation().getY());
-				// vectorCentral.normalize();
 
 		/*
-		 * calculate the orthogonal vector (also called tangent vector) by
+		 * Calculate the orthogonal vector (also called tangent vector) by
 		 * switching x and y of the central vector and multiply one of these
 		 * values by -1
 		 */
 		Vector2d vectorTangent = new Vector2d(-vectorCentral.y, vectorCentral.x);
-		// vectorTangent.normalize();
 
 		/*
-		 * compute the dot product or scalar product of the central and tangent
+		 * Compute the dot product or scalar product of the central and tangent
 		 * vectors with the vectors of particleOne and particleTwo. These values
 		 * are used to determine the velocity with which the particles will
 		 * travel after the collision
@@ -520,12 +538,11 @@ public class Universe extends Observable {
 		double vectorTangentTwo = vectorTangent.dot(particleTwo.getVector());
 
 		/*
-		 * calculate the new central velocity using the formula for an
+		 * Calculate the new central velocity using the formula for an
 		 * one-dimensional elastic collision. The mass will be included to get a
 		 * physically correct solution. The tangential velocity doesn't change
 		 * after the collision so we don't need to make another calculation and
-		 * can use the dot product vectorTangentOne and Two for further
-		 * calculations
+		 * can use the dot product vectorTangentOne/Two for further calculations
 		 */
 		double newVelocityVectorCentralOne = (vectorCentralOne * (particleOne.getMass() - particleTwo.getMass())
 				+ 2d * particleTwo.getMass() * vectorCentralTwo) / (particleOne.getMass() + particleTwo.getMass());
@@ -533,7 +550,7 @@ public class Universe extends Observable {
 				+ 2d * particleOne.getMass() * vectorCentralOne) / (particleOne.getMass() + particleTwo.getMass());
 
 		/*
-		 * multiply the vectors centralOne/Two and tangentOne/Two with the
+		 * Multiply the vectors centralOne/Two and tangentOne/Two with the
 		 * values of the calculated velocities
 		 */
 		Vector2d vectorCentralOneWithVelocity = new Vector2d(vectorCentral.x * newVelocityVectorCentralOne,
@@ -546,9 +563,9 @@ public class Universe extends Observable {
 				vectorTangent.y * vectorTangentTwo);
 
 		/*
-		 * calculate the actual vectors for particleOne and Two and therefore
+		 * Calculate the actual vectors for particleOne and Two and therefore
 		 * get the direction in which the particles bounce off after the
-		 * collision.
+		 * collision
 		 */
 		Vector2d finalVectorOne = new Vector2d(vectorCentralOneWithVelocity.x + vectorTangentOneWithVelocity.x,
 				vectorCentralOneWithVelocity.y + vectorTangentOneWithVelocity.y);
@@ -556,17 +573,15 @@ public class Universe extends Observable {
 				vectorCentralTwoWithVelocity.y + vectorTangentTwoWithVelocity.y);
 
 		/*
-		 * extract the velocity from the final vectors, otherwise they'll be
+		 * Extract the velocity from the final vectors, otherwise they'll be
 		 * lost due to the normalize() method in Particle.setVector()
 		 */
 		double finalVelocityOne = finalVectorOne.length();
 		double finalVelocityTwo = finalVectorTwo.length();
 
-		/* set the vector for both particles */
+		/* Set the vector and velocity for both particles */
 		particleOne.setVector(finalVectorOne);
 		particleTwo.setVector(finalVectorTwo);
-
-		/* set the velocity for both particles */
 		particleOne.setVelocity(finalVelocityOne);
 		particleTwo.setVelocity(finalVelocityTwo);
 
@@ -583,19 +598,19 @@ public class Universe extends Observable {
 	protected void splitParticle(Particle big, Particle fast) {
 
 		/*
-		 * calculate the collision point to detecte where we need to create to
+		 * Calculate the collision point to detecte where we need to create to
 		 * two smaller particles
 		 */
 		Point2D collisionPoint = detectCollisionPoint(big, fast);
 
 		/*
-		 * each of the small particles gains half the mass of the splitted
+		 * Each of the small particles gains half the mass of the splitted
 		 * particle
 		 */
 		double particleSmallMass = big.getMass() / 2;
 
 		/*
-		 * calculate the x and y component of the collision vector, the
+		 * Calculate the x and y component of the collision vector, the
 		 * orientation is important therefore figure out in which direction the
 		 * collisionVector is showing
 		 */
@@ -603,13 +618,13 @@ public class Universe extends Observable {
 		double vectorY = Math.abs(fast.getVector().getY() - big.getVector().getY()) * fast.getVector().y > 0 ? 1d : -1d;
 
 		/*
-		 * create the collisionVector, we will use it to calculate the angle at
+		 * Create the collisionVector, we will use it to calculate the angle at
 		 * which the two smaller particles will escape
 		 */
 		Vector2d collisionVector = new Vector2d(vectorX, vectorY);
 
 		/*
-		 * create the new vector by rotating the collision vector about 45° with
+		 * Create the new vector by rotating the collision vector about 45° with
 		 * and angainst its current direction. As always we normalize to prevent
 		 * strange behaviour
 		 */
@@ -618,17 +633,18 @@ public class Universe extends Observable {
 		Vector2d escapeTwo = rotateVector(new Vector2d(collisionVector), -Math.PI / 4d);
 		escapeTwo.normalize();
 
+		/* particleTwo gets destroyed */
 		particleList.remove(big);
 
 		/*
-		 * the little shift in position due to the collision. To ensure the new
+		 * The little shift in position due to the collision. To ensure the new
 		 * particles don't overlap with the collided particles we use multiply
 		 * the radius of the bigger one with 2
 		 */
 		double displacement = big.getRadius() * 2;
 
 		/*
-		 * create the two small particles and enter them into the collision set
+		 * Create the two small particles and enter them into the collision set
 		 * to prevent further splitting with the fast particle. The density for
 		 * both small particles will be the same as the density from the
 		 * splitted one
@@ -660,13 +676,13 @@ public class Universe extends Observable {
 	protected void absorbParticle(Particle particleOne, Particle particleTwo) {
 		double dx = particleTwo.getLocation().getX() - particleOne.getLocation().getX();
 		double dy = particleTwo.getLocation().getY() - particleOne.getLocation().getY();
-		/* the little shift in position due to the collision */
+		/* The little shift in position due to the collision */
 		double displacement = Math.sqrt(dx * dx + dy * dy);
 		double newMass = particleOne.getMass() + particleTwo.getMass();
 		double newDensity = (particleOne.getDensity() + particleTwo.getDensity()) / 2;
 		double newVelocity = particleTwo.getMass() / (displacement * displacement);
 
-		/* particle one assmiliates all properties of particle two */
+		/* particleOne assmiliates all properties of particleTwo */
 		particleOne.setMass(newMass);
 		particleOne.setDensity(newDensity);
 		particleOne.setVelocity(newVelocity);
@@ -675,7 +691,7 @@ public class Universe extends Observable {
 		particleList.remove(particleTwo);
 	}
 
-	/* the vector rotates about the angle around a fixed point */
+	/* The vector rotates about the angle (in rad) around a fixed point */
 	protected Vector2d rotateVector(Vector2d vector, double theta) {
 		Point2D point = new Point2D.Double(vector.x, vector.y);
 		AffineTransform.getRotateInstance(theta, 0, 0).transform(point, point);
@@ -687,11 +703,12 @@ public class Universe extends Observable {
 	/*
 	 * --- Particle creation and destruction ---
 	 */
+
 	public Particle createParticle(double x, double y) {
-		return createParticle(x, y, getParticleMass(), getParticleDensity());
+		return createParticle(getParticleMass(), getParticleDensity(), x, y);
 	}
 
-	public Particle createParticle(double x, double y, double mass, double density) {
+	public Particle createParticle(double mass, double density, double x, double y) {
 		Particle particle = new Particle(mass, density, x, y);
 		synchronized (particleList) {
 			particleList.add(particle);
@@ -700,8 +717,8 @@ public class Universe extends Observable {
 	}
 
 	/*
-	 * delete the content of the particleList so we can start with a fresh
-	 * contentPane without drawings
+	 * Delete the content of the particleList so we can start with a fresh
+	 * contentPane without drawings other than the background
 	 */
 	public void clearParticles() {
 		synchronized (particleList) {
